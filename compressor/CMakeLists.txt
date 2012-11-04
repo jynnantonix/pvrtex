@@ -19,8 +19,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
 find_package(FreeImage REQUIRED)
 
 # Get project sources
-FILE(GLOB HDR ${PROJECT_SOURCE_DIR}/inc/*.h)
-FILE(GLOB SRC ${PROJECT_SOURCE_DIR}/src/*.cpp)
+file(GLOB HDR ${PROJECT_SOURCE_DIR}/inc/*.h)
+file(GLOB SRC ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 # Create the project executable
 if( ${FREEIMAGE_FOUND} )
