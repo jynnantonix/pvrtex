@@ -18,13 +18,16 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
 # Get FreeImage
 find_package(FreeImage REQUIRED)
 
+# Get Eigen3
+find_package(Eigen REQUIRED)
+
 # Get project sources
 file(GLOB HDR ${PROJECT_SOURCE_DIR}/inc/*.h)
 file(GLOB SRC ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 # Create the project executable
 if( ${FREEIMAGE_FOUND} )
-  include_directories( ${FREEIMAGE_INCLUDE_PATH} )
+  include_directories( ${FREEIMAGE_INCLUDE_PATH} ${EIGEN_INCLUDE_DIRS} )
 
   add_executable( pvrtex ${HDR} ${SRC} )
 

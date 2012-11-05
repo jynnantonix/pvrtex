@@ -105,14 +105,14 @@ int main(int argc, char **argv)
 
     // convert the bitmap to raw bits (top-left pixel first)
 	FreeImage_ConvertToRawBits(bits, src, scan_width, 32, FI_RGBA_RED_MASK,
-                               FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, TRUE);
+                               FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, true);
 	FreeImage_Unload(src);
 
     // Use FreeImage to write out the uncompressed 32-bit ARGB result
     // as a PNG file
 	FIBITMAP *out = FreeImage_ConvertFromRawBits(bits, width, height,
-                                                 scan_width, 32, 0x00FF0000,
-                                                 0x0000FF00, 0x000000FF, true);
+                                                 scan_width, 32,FI_RGBA_RED_MASK,
+                                                 FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, true);
 	FreeImage_Save(FIF_PNG, out, argv[2]);
 	FreeImage_Unload(out);
     
