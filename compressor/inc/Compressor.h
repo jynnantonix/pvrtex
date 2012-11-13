@@ -1,57 +1,59 @@
-//=========================================================================//
-//                                                                         //
-// @file            Compressor.h                                           //
-// @author          Chirantan Ekbote (ekbote@seas.harvard.edu)             //
-// @date            2012/11/05                                             //
-// @version         0.2                                                    //
-// @brief           Class declaration for pvr texture compressor           //
-//                                                                         //
-//=========================================================================//
+#ifndef __pvrtex__Compressor__
+#define __pvrtex__Compressor__
+
+/*=========================================================================*/
+/*                                                                         */
+/* @file            Compressor.h                                           */
+/* @author          Chirantan Ekbote (ekbote@seas.harvard.edu)             */
+/* @date            2012/11/05                                             */
+/* @version         0.2                                                    */
+/* @brief           Class declaration for pvr texture compressor           */
+/*                                                                         */
+/*=========================================================================*/
 
 #include <iostream>
 #include <FreeImage.h>
 #include <Eigen/Dense>
 
-namespace PVRTEX
+namespace pvrtex
 {
+  class Compressor
+  {
+  public:
     enum IMAGE_FORMAT { A8R8G8B8, R8G8B8, PVRTC4, PVRTC2 };
-};
-
-class Compressor
-{
-public:
     
-    Compressor(int w, int h, int sw, PVRTEX::IMAGE_FORMAT f, BYTE *d);
+    Compressor(int w, int h, int sw, IMAGE_FORMAT f, BYTE *d);
     ~Compressor();
-
-    void setWidth(int w);
-    void setHeight(int h);
-    void setScanWidth(int sw);
-    void setFormat(PVRTEX::IMAGE_FORMAT f);
-    void setData(BYTE *d);
     
-    int getWidth();
-    int getHeight();
-    int getScanWidth();
-    PVRTEX::IMAGE_FORMAT getFormat();
-    BYTE* getData();
-
-    void compress(BYTE *out, PVRTEX::IMAGE_FORMAT format = PVRTEX::PVRTC4); 
+    inline void set_width(int w);
+    inline void set_height(int h);
+    inline void set_scan_width(int sw);
+    inline void set_format(IMAGE_FORMAT f);
+    inline void set_data(BYTE *d);
     
-    void writeToFile(const char *filename);
-private:
+    inline int width();
+    inline int height();
+    inline int scan_width();
+    inline IMAGE_FORMAT format();
+    inline BYTE* data();
+    
+    void Compress(BYTE *out, IMAGE_FORMAT format = PVRTC4);
+    
+    void WriteToFile(const char *filename);
+  private:
     Compressor();
     
-    inline BYTE make_alpha(unsigned int p);
-    inline BYTE make_red(unsigned int p);
-    inline BYTE make_green(unsigned int p);
-    inline BYTE make_blue(unsigned int p);
+    inline BYTE MakeAlpha(unsigned int p);
+    inline BYTE MakeRed(unsigned int p);
+    inline BYTE MakeGreen(unsigned int p);
+    inline BYTE MakeBlue(unsigned int p);
     
-    int m_width;
-    int m_height;
-    int m_scanWidth;
-    PVRTEX::IMAGE_FORMAT m_format;
-    BYTE *m_data;
-};
-    
-    
+    int width_;
+    int height_;
+    int scan_width_;
+    IMAGE_FORMAT format_;
+    BYTE *data_;
+  };
+} /* namespace PVRTEX */
+#endif /* defined(__pvrtex__Compressor__) */
+
