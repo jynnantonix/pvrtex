@@ -21,8 +21,10 @@
 #define FIVE_EIGHTHS        0.625f
 
 namespace pvrtex {
-  inline int Clamp(unsigned int x, unsigned int a, unsigned int b) {
-    return fmin(fmax(x, a), b);
+  inline float Clamp(unsigned int x, unsigned int a, unsigned int b) {
+    return static_cast<int>(fminf(fmaxf(static_cast<float>(x),
+                                        static_cast<float>(a)),
+                                  static_cast<float>(b)));
   }
   
   inline float lerp(const float a, const float b, const float delta) {
