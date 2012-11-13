@@ -60,7 +60,7 @@ namespace pvrtex {
     return scan_width_;
   }
   
-  inline IMAGE_FORMAT Compressor::format()
+  inline Compressor::IMAGE_FORMAT Compressor::format()
   {
     return format_;
   }
@@ -70,28 +70,7 @@ namespace pvrtex {
     return data_;
   }
   
-  inline BYTE Compressor::MakeAlpha(unsigned int p)
-  {
-    return ((p & FI_RGBA_ALPHA_MASK)>>FI_RGBA_ALPHA_SHIFT);
-  }
-  
-  inline BYTE Compressor::MakeRed(unsigned int p)
-  {
-    return ((p & FI_RGBA_RED_MASK)>>FI_RGBA_RED_SHIFT);
-  }
-  
-  inline BYTE Compressor::MakeGreen(unsigned int p)
-  {
-    return ((p & FI_RGBA_GREEN_MASK)>>FI_RGBA_GREEN_SHIFT);
-  }
-  
-  inline BYTE Compressor::MakeBlue(unsigned int p)
-  {
-    return ((p & FI_RGBA_BLUE_MASK)>>FI_RGBA_BLUE_SHIFT);
-  }
-  
-  void Compressor::Compress(BYTE *out, IMAGE_FORMAT format)
-  {
+  void Compressor::Compress(BYTE *out, IMAGE_FORMAT format) {
     //unsigned int *bits = (unsigned int*) malloc(m_height * m_scanWidth);
     //bits = (unsigned int*)m_data;
     //memcpy((void*)out, (void*)m_data, m_height * m_scanWidth);
@@ -109,14 +88,18 @@ namespace pvrtex {
       }
     }
     
-    for (int y = 0; y < height_; ++y) {
-      for (int x = 0; x < width_; ++x) {
+    /* Wavelet filter */
+    Wavelet filter(Wavelet::BASIC);
+    Eigen::MatrixXi result = filter.Upscale(filter.Downscale(bits));
+    
+    for (int y = 0; y < result.rows(); ++y) {
+      for (int x = 0; x < result.cols(); ++x) {
         int idx = 4 * (y*width_ + x);
-        unsigned int pixel = bits(y, x);
-        out[idx] = MakeAlpha(pixel);
-        out[idx+1] = MakeRed(pixel);
-        out[idx+2] = MakeGreen(pixel);
-        out[idx+3] = MakeBlue(pixel);
+        unsigned int pixel = result(y, x);
+        out[idx] = pvrtex::MakeAlpha(pixel);
+        out[idx+1] = pvrtex::MakeRed(pixel);
+        out[idx+2] = pvrtex::MakeGreen(pixel);
+        out[idx+3] = pvrtex::MakeBlue(pixel);
       }
     }
     

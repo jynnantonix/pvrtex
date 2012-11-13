@@ -15,6 +15,9 @@
 #include <FreeImage.h>
 #include <Eigen/Dense>
 
+#include "Util.h"
+#include "Wavelet.h"
+
 namespace pvrtex
 {
   class Compressor
@@ -42,11 +45,6 @@ namespace pvrtex
     void WriteToFile(const char *filename);
   private:
     Compressor();
-    
-    inline BYTE MakeAlpha(unsigned int p);
-    inline BYTE MakeRed(unsigned int p);
-    inline BYTE MakeGreen(unsigned int p);
-    inline BYTE MakeBlue(unsigned int p);
     
     int width_;
     int height_;

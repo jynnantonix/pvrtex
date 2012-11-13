@@ -14,10 +14,9 @@
 #include <iostream>
 #include <Eigen/Dense>
 
+#include "Util.h"
 namespace pvrtex
-{
-  class Compressor;
-  
+{  
   class Wavelet
   {
   public:
@@ -28,9 +27,9 @@ namespace pvrtex
     
     void Init();
     
-    void Downscale(Eigen::MatrixXi orig, Eigen::MatrixXi result);
+    Eigen::MatrixXi Downscale(Eigen::MatrixXi orig);
     
-    void Upscale(Eigen::MatrixXi orig, Eigen::MatrixXi result);
+    Eigen::MatrixXi Upscale(Eigen::MatrixXi orig);
     
   private:
     
