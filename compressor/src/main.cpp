@@ -12,6 +12,8 @@
 #include <iostream>   
 #include <FreeImage.h>
 
+#include "../inc/Compressor.h"
+
 ///////////////////////////////////////////////////////////////////////////////
 //  Miscellaneous Functions                                                  //
 ///////////////////////////////////////////////////////////////////////////////
@@ -108,9 +110,13 @@ int main(int argc, char **argv)
                                FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, true);
 	FreeImage_Unload(src);
 
+    // Compress the image
+    BYTE *result = (BYTE*)malloc(height * scan_width);
+    Compressor cmp(width, height, scan_width, PVRTEX::A8R8G8B8, bits);
+    cmp.compress(result);
     // Use FreeImage to write out the uncompressed 32-bit ARGB result
     // as a PNG file
-	FIBITMAP *out = FreeImage_ConvertFromRawBits(bits, width, height,
+	FIBITMAP *out = FreeImage_ConvertFromRawBits(result, width, height,
                                                  scan_width, 32,FI_RGBA_RED_MASK,
                                                  FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, true);
 	FreeImage_Save(FIF_PNG, out, argv[2]);
