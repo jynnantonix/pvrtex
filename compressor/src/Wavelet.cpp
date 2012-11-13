@@ -74,7 +74,7 @@ namespace pvrtex {
                                       pvrtex::lerp(static_cast<float>(c(k)),
                                                    static_cast<float>(d(k)),
                                                    x_diff),
-                         y_diff));
+                                      y_diff));
         }
         
         /* Store the result */
@@ -84,4 +84,4 @@ namespace pvrtex {
     
     return result;
   }
-}
+} /* namespace pvrtex */

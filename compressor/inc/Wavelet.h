@@ -1,6 +1,3 @@
-#ifndef __pvrtex__Wavelet__
-#define __pvrtex__Wavelet__
-
 /*=========================================================================*/
 /*                                                                         */
 /* @file            Wavelet.h                                              */
@@ -10,6 +7,8 @@
 /* @brief           Class declaration for wavelet filters                  */
 /*                                                                         */
 /*=========================================================================*/
+#ifndef __pvrtex__Wavelet__
+#define __pvrtex__Wavelet__
 
 #include <iostream>
 #include <Eigen/Dense>
@@ -22,7 +21,7 @@ namespace pvrtex
   public:
     enum FILTER { BIOR, DAUBECHIES, BASIC };
     
-    Wavelet(FILTER f = BASIC);
+    Wavelet(FILTER f);
     ~Wavelet();
     
     void Init();
@@ -36,5 +35,5 @@ namespace pvrtex
     FILTER filter_type_;
     const float *filter_;
   };
-}
+} /* namespace pvrtex */
 #endif /* defined(__pvrtex__Wavelet__) */
