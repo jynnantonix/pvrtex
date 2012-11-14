@@ -1,6 +1,3 @@
-#ifndef __pvrtex__Compressor__
-#define __pvrtex__Compressor__
-
 /*=========================================================================*/
 /*                                                                         */
 /* @file            Compressor.h                                           */
@@ -10,6 +7,8 @@
 /* @brief           Class declaration for pvr texture compressor           */
 /*                                                                         */
 /*=========================================================================*/
+#ifndef __pvrtex__Compressor__
+#define __pvrtex__Compressor__
 
 #include <iostream>
 #include <FreeImage.h>
@@ -40,18 +39,21 @@ namespace pvrtex
     inline IMAGE_FORMAT format();
     inline BYTE* data();
     
-    void Compress(BYTE *out, IMAGE_FORMAT format = PVRTC4);
+    void Compress(BYTE *out, IMAGE_FORMAT format);
     
     void WriteToFile(const char *filename);
   private:
     Compressor();
     
+    Eigen::MatrixXf ComputeModulation(Eigen::MatrixXi orig,
+                                      Eigen::MatrixXi dark,
+                                      Eigen::MatrixXi bright);
     int width_;
     int height_;
     int scan_width_;
     IMAGE_FORMAT format_;
     BYTE *data_;
   };
-} /* namespace PVRTEX */
+} /* namespace pvrtex */
 #endif /* defined(__pvrtex__Compressor__) */
 
