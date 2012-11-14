@@ -113,7 +113,7 @@ int main(int argc, char **argv)
   BYTE *result = (BYTE*)malloc(height * scan_width);
   pvrtex::Compressor cmp(width, height, scan_width,
                          pvrtex::Compressor::A8R8G8B8, bits);
-  cmp.Compress(result);
+  cmp.Compress(result, pvrtex::Compressor::PVRTC4);
   // Use FreeImage to write out the uncompressed 32-bit ARGB result
   // as a PNG file
 	FIBITMAP *out = FreeImage_ConvertFromRawBits(result, width, height,
