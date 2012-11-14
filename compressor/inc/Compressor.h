@@ -3,7 +3,7 @@
 /* @file            Compressor.h                                           */
 /* @author          Chirantan Ekbote (ekbote@seas.harvard.edu)             */
 /* @date            2012/11/05                                             */
-/* @version         0.2                                                    */
+/* @version         0.3                                                    */
 /* @brief           Class declaration for pvr texture compressor           */
 /*                                                                         */
 /*=========================================================================*/
@@ -16,6 +16,7 @@
 
 #include "Util.h"
 #include "Wavelet.h"
+#include "Optimizer.h"
 
 namespace pvrtex
 {

@@ -3,7 +3,7 @@
 /* @file            Compressor.cpp                                          */
 /* @author          Chirantan Ekbote (ekbote@seas.harvard.edu)              */
 /* @date            2012/11/05                                              */
-/* @version         0.2                                                     */
+/* @version         0.3                                                     */
 /* @brief           Class implementation for pvr texture compressor         */
 /*                                                                          */
 /*==========================================================================*/
@@ -79,11 +79,11 @@ namespace pvrtex {
     for (int y = 0; y < height_; ++y) {
       for (int x = 0; x < width_; ++x) {
         /* Get the original, dark, and bright pixel colors */
-        o = MakeColorVector(orig(y, x));
-        d = MakeColorVector(dark(y, x));
-        b = MakeColorVector(bright(y, x));
+        o = util::MakeColorVector(orig(y, x));
+        d = util::MakeColorVector(dark(y, x));
+        b = util::MakeColorVector(bright(y, x));
         
-        /* Get the error for each modulation value and find the minimum*/
+        /* Get the error for each modulation value and find the minimum */
         delta_d = static_cast<int>((d - o).squaredNorm());
         delta_b = static_cast<int>((b - o).squaredNorm());
         delta_38 = static_cast<int>(
@@ -141,20 +141,29 @@ namespace pvrtex {
     Wavelet filter(Wavelet::BASIC);
     Eigen::MatrixXi result = filter.Upscale(filter.Downscale(bits));
     
+    /* Initial dark and bright prototypes */
     Eigen::MatrixXi dark = Eigen::MatrixXi::Constant(height_, width_, 0);
     Eigen::MatrixXi bright = Eigen::MatrixXi::Constant(height_,
                                                        width_,
                                                        0xFFFFFFFF);
     
+    /* Calculate the initial modulation image */
+    Eigen::MatrixXf mod = ComputeModulation(bits, dark, bright);
+    
+    /* Iterative optimization */
+    Optimizer opt(bits, mod);
+    opt.Optimize();
+    dark = opt.dark();
+    bright = opt.bright();
     /* Write the final output */
-    for (int y = 0; y < result.rows(); ++y) {
-      for (int x = 0; x < result.cols(); ++x) {
-        int idx = 4 * (y*width_ + x);
-        unsigned int pixel = result(y, x);
-        out[idx] = pvrtex::MakeAlpha(pixel);
-        out[idx+1] = pvrtex::MakeRed(pixel);
-        out[idx+2] = pvrtex::MakeGreen(pixel);
-        out[idx+3] = pvrtex::MakeBlue(pixel);
+    for (int y = 0; y < dark.rows(); ++y) {
+      for (int x = 0; x < dark.cols(); ++x) {
+        int idx = 4*(y*width_ + x);
+        unsigned int pixel = dark(y, x);
+        out[idx] = util::MakeAlpha(pixel);
+        out[idx+1] = util::MakeRed(pixel);
+        out[idx+2] = util::MakeGreen(pixel);
+        out[idx+3] = util::MakeBlue(pixel);
       }
     }
     
