@@ -10,7 +10,6 @@
 #ifndef __pvrtex__Wavelet__
 #define __pvrtex__Wavelet__
 
-#include <iostream>
 #include <Eigen/Dense>
 
 #include "Util.h"
@@ -21,6 +20,7 @@ namespace pvrtex
   public:
     enum FILTER { BIOR, DAUBECHIES, BASIC };
     
+    Wavelet();
     Wavelet(FILTER f);
     ~Wavelet();
     
@@ -31,9 +31,9 @@ namespace pvrtex
     Eigen::MatrixXi Upscale(Eigen::MatrixXi orig);
     
   private:
-    
     FILTER filter_type_;
-    const float *filter_;
+    
+    static const float kBasicFilter[];
   };
 } /* namespace pvrtex */
 #endif /* defined(__pvrtex__Wavelet__) */
