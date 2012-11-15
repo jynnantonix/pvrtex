@@ -11,6 +11,7 @@
 #define __pvrtex__Compressor__
 
 #include <iostream>
+#include <cfloat>
 #include <FreeImage.h>
 #include <Eigen/Dense>
 

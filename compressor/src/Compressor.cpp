@@ -73,45 +73,26 @@ namespace pvrtex {
   Eigen::MatrixXf Compressor::ComputeModulation(Eigen::MatrixXi orig,
                                                 Eigen::MatrixXi dark,
                                                 Eigen::MatrixXi bright) {
+    static const float kModulationValues[] = { 0.0f, 0.375f, 0.625f, 1.0f };
     Eigen::MatrixXf result(height_, width_);
-    Eigen::Vector4i o, d, b;
-    int delta_d, delta_b, delta_38, delta_58, delta_min;
+    Eigen::Vector4f o, d, b;
+    float delta, delta_min;
     for (int y = 0; y < height_; ++y) {
       for (int x = 0; x < width_; ++x) {
         /* Get the original, dark, and bright pixel colors */
-        o = util::MakeColorVector(orig(y, x));
-        d = util::MakeColorVector(dark(y, x));
-        b = util::MakeColorVector(bright(y, x));
+        o = util::MakeColorVector(orig(y, x)).cast<float>();
+        d = util::MakeColorVector(dark(y, x)).cast<float>();
+        b = util::MakeColorVector(bright(y, x)).cast<float>();
         
-        /* Get the error for each modulation value and find the minimum */
-        delta_d = static_cast<int>((d - o).squaredNorm());
-        delta_b = static_cast<int>((b - o).squaredNorm());
-        delta_38 = static_cast<int>(
-                      ((FIVE_EIGHTHS*d)+(THREE_EIGHTHS*b) - o).squaredNorm());
-        delta_58 = static_cast<int>(
-                      ((THREE_EIGHTHS*d)+(FIVE_EIGHTHS*b) - o).squaredNorm());
-        delta_min = static_cast<int>(fminf(fminf(static_cast<float>(delta_d),
-                                                 static_cast<float>(delta_b)),
-                                           fminf(static_cast<float>(delta_38),
-                                                 static_cast<float>(delta_58))));
-        
-        /* Now set the modbit accordingly */
-        if (delta_min == delta_d) {
-          result(y, x) = 0.0f;
-        } else if (delta_min == delta_38) {
-          result(y, x) = THREE_EIGHTHS;
-        } else if (delta_min == delta_58) {
-          result(y, x) = FIVE_EIGHTHS;
-        } else if (delta_min == delta_b) {
-          result(y, x) = 1.0f;
-        } else {
-          std::cerr << "Invalid modulation error found: " << delta_min
-                    << std::endl;
-          std::cerr << "delta_d: " << delta_d << std::endl;
-          std::cerr << "delta_38: " << delta_38 << std::endl;
-          std::cerr << "delta_58: " << delta_58 << std::endl;
-          std::cerr << "delta_b: " << delta_b << std::endl;
-          std::cerr << "Position is <" << y << "," << x << ">" << std::endl;
+        /* Set the appropriate modulation value */
+        delta_min = FLT_MAX;
+        for (int k = 0; k < 4; ++k) {
+          delta = (((1-kModulationValues[k])*d +
+                    kModulationValues[k]*b) - o).squaredNorm();
+          if (delta < delta_min) {
+            result(y, x) = kModulationValues[k];
+            delta_min = delta;
+          }
         }
       }
     }
@@ -142,24 +123,45 @@ namespace pvrtex {
     Eigen::MatrixXi result = filter.Upscale(filter.Downscale(bits));
     
     /* Initial dark and bright prototypes */
-    Eigen::MatrixXi dark = Eigen::MatrixXi::Constant(height_, width_, 0);
-    Eigen::MatrixXi bright = Eigen::MatrixXi::Constant(height_,
-                                                       width_,
-                                                       0xFFFFFFFF);
-    
-    /* Calculate the initial modulation image */
-    Eigen::MatrixXf mod = ComputeModulation(bits, dark, bright);
+    Eigen::MatrixXi dark = Eigen::MatrixXi::Constant(height_>>2,
+                                                     width_>>2,
+                                                     0x20202020);
+    Eigen::MatrixXi bright = Eigen::MatrixXi::Constant(height_>>2,
+                                                       width_>>2,
+                                                       0xDFDFDFDF);
     
     /* Iterative optimization */
-    Optimizer opt(bits, mod);
-    opt.Optimize();
-    dark = opt.dark();
-    bright = opt.bright();
+    for (int k = 0; k < 10; ++k) {
+      /* Upscale images */
+      dark = filter.Upscale(dark);
+      bright = filter.Upscale(bright);
+      
+      /* Calculate the initial modulation image */
+      Eigen::MatrixXf mod = ComputeModulation(bits, dark, bright);
+      
+      /* Least squares optimization */
+      Optimizer opt(bits, mod);
+      opt.Optimize();
+      dark = opt.dark();
+      bright = opt.bright();
+    }
+    
     /* Write the final output */
     for (int y = 0; y < dark.rows(); ++y) {
       for (int x = 0; x < dark.cols(); ++x) {
         int idx = 4*(y*width_ + x);
         unsigned int pixel = dark(y, x);
+        out[idx] = util::MakeAlpha(pixel);
+        out[idx+1] = util::MakeRed(pixel);
+        out[idx+2] = util::MakeGreen(pixel);
+        out[idx+3] = util::MakeBlue(pixel);
+      }
+    }
+    
+    for (int y = 0; y < bright.rows(); ++y) {
+      for (int x = 0; x < bright.cols(); ++x) {
+        int idx = (1024*512)+(4*(y*width_ + x));
+        unsigned int pixel = bright(y, x);
         out[idx] = util::MakeAlpha(pixel);
         out[idx+1] = util::MakeRed(pixel);
         out[idx+2] = util::MakeGreen(pixel);
