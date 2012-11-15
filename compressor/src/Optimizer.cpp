@@ -156,8 +156,8 @@ namespace pvrtex {
     }
     
     /* Solve for the best colors */
-    Eigen::JacobiSVD<Eigen::MatrixXf> svd(a, Eigen::ComputeFullU |
-                                          Eigen::ComputeFullV);
+    Eigen::JacobiSVD<Eigen::MatrixXf> svd(a, Eigen::ComputeThinU |
+                                          Eigen::ComputeThinV);
     Eigen::VectorXf optimal_red = svd.solve(red);
     Eigen::VectorXf optimal_green = svd.solve(green);
     Eigen::VectorXf optimal_blue = svd.solve(blue);
