@@ -70,12 +70,8 @@ namespace pvrtex {
     const Eigen::MatrixXi offset = Eigen::MatrixXi::Constant(height_>>2,
                                                              width_>>2,
                                                              0x10101010);
-    Eigen::MatrixXi dark = Eigen::MatrixXi::Constant(height_>>2,
-                                                     width_>>2,
-                                                     0x20202020);;
-    Eigen::MatrixXi bright = Eigen::MatrixXi::Constant(height_>>2,
-                                                       width_>>2,
-                                                       0xDFDFDFDF);;
+    Eigen::MatrixXi dark = result - offset;
+    Eigen::MatrixXi bright = result + offset;
     
     /* Iterative optimization */
     Eigen::MatrixXf mod;

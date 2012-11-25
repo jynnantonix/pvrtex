@@ -195,44 +195,92 @@ namespace pvrtex {
     /* Update the dark and bright images */
     dark_(j, i) = util::MakeRGBA(util::MakeColorVector(dark_(j, i)) +
                                  Eigen::Vector4i(0xFFFFFFFF,
-                                                 optimal_red(0),
-                                                 optimal_green(0),
-                                                 optimal_blue(0)));
+                                                 util::Clamp(optimal_red(0),
+                                                             -8,
+                                                             8),
+                                                 util::Clamp(optimal_green(0),
+                                                             -8,
+                                                             8),
+                                                 util::Clamp(optimal_blue(0),
+                                                             -8,
+                                                             8)));
     bright_(j, i) = util::MakeRGBA(util::MakeColorVector(bright_(j, i)) +
                                    Eigen::Vector4i(0xFFFFFFFF,
-                                                   optimal_red(1),
-                                                   optimal_green(1),
-                                                   optimal_blue(1)));
+                                                   util::Clamp(optimal_red(1),
+                                                               -8,
+                                                               8),
+                                                   util::Clamp(optimal_green(1),
+                                                               -8,
+                                                               8),
+                                                   util::Clamp(optimal_blue(1),
+                                                               -8,
+                                                               8)));
     dark_(j, i+1) = util::MakeRGBA(util::MakeColorVector(dark_(j, i+1)) +
                                    Eigen::Vector4i(0xFFFFFFFF,
-                                                   optimal_red(2),
-                                                   optimal_green(2),
-                                                   optimal_blue(2)));
+                                                   util::Clamp(optimal_red(2),
+                                                               -8,
+                                                               8),
+                                                   util::Clamp(optimal_green(2),
+                                                               -8,
+                                                               8),
+                                                   util::Clamp(optimal_blue(2),
+                                                               -8,
+                                                               8)));
     bright_(j, i+1) = util::MakeRGBA(util::MakeColorVector(bright_(j, i+1)) +
                                      Eigen::Vector4i(0xFFFFFFFF,
-                                                     optimal_red(3),
-                                                     optimal_green(3),
-                                                     optimal_blue(3)));
+                                                     util::Clamp(optimal_red(3),
+                                                                 -8,
+                                                                 8),
+                                                     util::Clamp(optimal_green(3),
+                                                                 -8,
+                                                                 8),
+                                                     util::Clamp(optimal_blue(3),
+                                                                 -8,
+                                                                 8)));
     dark_(j+1, i) = util::MakeRGBA(util::MakeColorVector(dark_(j+1, i)) +
                                    Eigen::Vector4i(0xFFFFFFFF,
-                                                   optimal_red(4),
-                                                   optimal_green(4),
-                                                   optimal_blue(4)));
+                                                   util::Clamp(optimal_red(4),
+                                                               -8,
+                                                               8),
+                                                   util::Clamp(optimal_green(4),
+                                                               -8,
+                                                               8),
+                                                   util::Clamp(optimal_blue(4),
+                                                               -8,
+                                                               8)));
     bright_(j+1, i) = util::MakeRGBA(util::MakeColorVector(bright_(j+1, i)) +
                                      Eigen::Vector4i(0xFFFFFFFF,
-                                                     optimal_red(5),
-                                                     optimal_green(5),
-                                                     optimal_blue(5)));
+                                                     util::Clamp(optimal_red(5),
+                                                                 -8,
+                                                                 8),
+                                                     util::Clamp(optimal_green(5),
+                                                                 -8,
+                                                                 8),
+                                                     util::Clamp(optimal_blue(5),
+                                                                 -8,
+                                                                 8)));
     dark_(j+1, i+1) = util::MakeRGBA(util::MakeColorVector(dark_(j+1, i+1)) +
                                      Eigen::Vector4i(0xFFFFFFFF,
-                                                     optimal_red(6),
-                                                     optimal_green(6),
-                                                     optimal_blue(6)));
+                                                     util::Clamp(optimal_red(6),
+                                                                 -8,
+                                                                 8),
+                                                     util::Clamp(optimal_green(6),
+                                                                 -8,
+                                                                 8),
+                                                     util::Clamp(optimal_blue(6),
+                                                                 -8,
+                                                                 8)));
     bright_(j+1, i+1) = util::MakeRGBA(util::MakeColorVector(bright_(j+1, i+1)) +
                                        Eigen::Vector4i(0xFFFFFFFF,
-                                                       optimal_red(7),
-                                                       optimal_green(7),
-                                                       optimal_blue(7)));
+                                                       util::Clamp(optimal_red(7),
+                                                                   -8,
+                                                                   8),
+                                                       util::Clamp(optimal_green(7),
+                                                                   -8,
+                                                                   8),
+                                                       util::Clamp(optimal_blue(7),
+                                                                   -8,
+                                                                   8)));
   }
   
   void Optimizer::Optimize() {

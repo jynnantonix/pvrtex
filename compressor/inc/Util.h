@@ -70,9 +70,9 @@ namespace pvrtex {
               ((b & 0x000000FF)<<FI_RGBA_BLUE_SHIFT));
     }
     
-    static Eigen::MatrixXi ModulateImage(const Eigen::MatrixXi &dark,
-                                         const Eigen::MatrixXi &bright,
-                                         const Eigen::MatrixXf &mod) {
+    static const Eigen::MatrixXi ModulateImage(const Eigen::MatrixXi &dark,
+                                               const Eigen::MatrixXi &bright,
+                                               const Eigen::MatrixXf &mod) {
       Eigen::MatrixXi result(mod.rows(), mod.cols());
       Eigen::Vector4f d, b;
       Eigen::Vector4i r;
@@ -101,7 +101,7 @@ namespace pvrtex {
       return sqrtf(result / (orig.rows()*orig.cols()));
     }
     
-    static Eigen::MatrixXi Downscale(Eigen::MatrixXi &orig) {
+    static const Eigen::MatrixXi Downscale(Eigen::MatrixXi &orig) {
       Eigen::MatrixXi result(orig.rows()>>2, orig.cols()>>2);
       for (int j = 0; j < result.rows(); ++j) {
         for (int i = 0; i < result.cols(); ++i) {
@@ -112,7 +112,7 @@ namespace pvrtex {
       return result;
     }
     
-    static Eigen::MatrixXi Upscale4x4(Eigen::MatrixXi &orig) {
+    static const Eigen::MatrixXi Upscale4x4(Eigen::MatrixXi &orig) {
       Eigen::MatrixXi result(orig.rows() * 4, orig.cols() * 4);
       int x, y, x1, y1;
       float x_diff, y_diff;
