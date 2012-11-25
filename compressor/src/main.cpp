@@ -105,8 +105,14 @@ int main(int argc, char **argv)
 	BYTE *bits = (BYTE*)malloc(height * scan_width);
   
   // convert the bitmap to raw bits (top-left pixel first)
-	FreeImage_ConvertToRawBits(bits, src, scan_width, 32, FI_RGBA_RED_MASK,
-                             FI_RGBA_GREEN_MASK, FI_RGBA_BLUE_MASK, true);
+	FreeImage_ConvertToRawBits(bits,
+                             src,
+                             scan_width,
+                             32,
+                             FI_RGBA_RED_MASK,
+                             FI_RGBA_GREEN_MASK,
+                             FI_RGBA_BLUE_MASK,
+                             true);
 	FreeImage_Unload(src);
   
   // Compress the image
@@ -119,10 +125,15 @@ int main(int argc, char **argv)
                pvrtex::Compressor::PVRTC4);
   // Use FreeImage to write out the uncompressed 32-bit ARGB result
   // as a PNG file
-	FIBITMAP *out = FreeImage_ConvertFromRawBits(result, width, height,
-                                               scan_width, 32,FI_RGBA_RED_MASK,
+	FIBITMAP *out = FreeImage_ConvertFromRawBits(result,
+                                               width,
+                                               height,
+                                               scan_width,
+                                               32,
+                                               FI_RGBA_RED_MASK,
                                                FI_RGBA_GREEN_MASK,
-                                               FI_RGBA_BLUE_MASK, true);
+                                               FI_RGBA_BLUE_MASK,
+                                               true);
 	FreeImage_Save(FIF_PNG, out, argv[2]);
 	FreeImage_Unload(out);
   

@@ -16,7 +16,6 @@
 #include <Eigen/Dense>
 
 #include "Util.h"
-#include "Wavelet.h"
 #include "Optimizer.h"
 
 namespace pvrtex
@@ -48,12 +47,6 @@ namespace pvrtex
     Eigen::MatrixXf ComputeModulation(const Eigen::MatrixXi &orig,
                                       const Eigen::MatrixXi &dark,
                                       const Eigen::MatrixXi &bright);
-    
-    Eigen::MatrixXi ModulateImage(const Eigen::MatrixXi &dark,
-                                  const Eigen::MatrixXi &bright,
-                                  const Eigen::MatrixXf &mod);
-    float ComputeError(const Eigen::MatrixXi &orig,
-                       const Eigen::MatrixXi &compressed);
     
     int width_;
     int height_;

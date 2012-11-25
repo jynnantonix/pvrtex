@@ -21,8 +21,15 @@ namespace pvrtex {
   public:
     enum SOLVER { SVD, QR, CHOLESKY };
     
-    Optimizer(Eigen::MatrixXi o, Eigen::MatrixXf m);
-    Optimizer(Eigen::MatrixXi o, Eigen::MatrixXf m, SOLVER s);
+    Optimizer(const Eigen::MatrixXi &o,
+              const Eigen::MatrixXf &m,
+              Eigen::MatrixXi &d,
+              Eigen::MatrixXi &b);
+    Optimizer(const Eigen::MatrixXi &o,
+              const Eigen::MatrixXf &m,
+              Eigen::MatrixXi &d,
+              Eigen::MatrixXi &b,
+              SOLVER s);
     ~Optimizer();
     
     inline Eigen::MatrixXi dark() { return dark_; }
@@ -32,13 +39,17 @@ namespace pvrtex {
   private:
     Optimizer();
     
-    Eigen::VectorXi OptimizeWindow(int j, int i);
+    void OptimizeWindow(int j, int i);
+    void ComputeUpdateVector();
     
+    Eigen::MatrixXi red_;
+    Eigen::MatrixXi green_;
+    Eigen::MatrixXi blue_;
     Eigen::MatrixXi dark_;
     Eigen::MatrixXi bright_;
-    Eigen::MatrixXi orig_;
-    Eigen::MatrixXf mod_;
-    SOLVER solv_;
+    const Eigen::MatrixXi orig_;
+    const Eigen::MatrixXf mod_;
+    const SOLVER solv_;
     
     static const int window_width_;
     static const int window_height_;

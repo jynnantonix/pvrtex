@@ -32,30 +32,30 @@ namespace pvrtex {
       return ((1.0f-delta) * a) + (delta*b);
     }
     
-    inline BYTE MakeAlpha(unsigned int p) {
+    inline int MakeAlpha(unsigned int p) {
       return ((p & FI_RGBA_ALPHA_MASK)>>FI_RGBA_ALPHA_SHIFT);
     }
     
-    inline BYTE MakeRed(unsigned int p) {
+    inline int MakeRed(unsigned int p) {
       return ((p & FI_RGBA_RED_MASK)>>FI_RGBA_RED_SHIFT);
     }
     
-    inline BYTE MakeGreen(unsigned int p) {
+    inline int MakeGreen(unsigned int p) {
       return ((p & FI_RGBA_GREEN_MASK)>>FI_RGBA_GREEN_SHIFT);
     }
     
-    inline BYTE MakeBlue(unsigned int p) {
+    inline int MakeBlue(unsigned int p) {
       return ((p & FI_RGBA_BLUE_MASK)>>FI_RGBA_BLUE_SHIFT);
     }
     
     inline Eigen::Vector4i MakeColorVector(unsigned int p) {
-      return Eigen::Vector4i(static_cast<int>(MakeAlpha(p)),
-                             static_cast<int>(MakeRed(p)),
-                             static_cast<int>(MakeGreen(p)),
-                             static_cast<int>(MakeBlue(p)));
+      return Eigen::Vector4i(MakeAlpha(p),
+                             MakeRed(p),
+                             MakeGreen(p),
+                             MakeBlue(p));
     }
     
-    inline unsigned int MakeRGBA(Eigen::Vector4i &p) {
+    inline unsigned int MakeRGBA(const Eigen::Vector4i &p) {
       return (((p(0) & 0x000000FF)<<FI_RGBA_ALPHA_SHIFT) |
               ((p(1) & 0x000000FF)<<FI_RGBA_RED_SHIFT) |
               ((p(2) & 0x000000FF)<<FI_RGBA_GREEN_SHIFT) |
@@ -69,6 +69,89 @@ namespace pvrtex {
               ((g & 0x000000FF)<<FI_RGBA_GREEN_SHIFT) |
               ((b & 0x000000FF)<<FI_RGBA_BLUE_SHIFT));
     }
+    
+    static Eigen::MatrixXi ModulateImage(const Eigen::MatrixXi &dark,
+                                         const Eigen::MatrixXi &bright,
+                                         const Eigen::MatrixXf &mod) {
+      Eigen::MatrixXi result(mod.rows(), mod.cols());
+      Eigen::Vector4f d, b;
+      Eigen::Vector4i r;
+      for (int y = 0; y < mod.rows(); ++y) {
+        for (int x = 0; x < mod.cols(); ++x) {
+          d = MakeColorVector(dark(y, x)).cast<float>();
+          b = MakeColorVector(bright(y, x)).cast<float>();
+          r = lerp<Eigen::Vector4f>(d,b, mod(y, x)).cast<int>();
+          result(y, x) = MakeRGBA(r);
+        }
+      }
+      return result;
+    }
+    
+    static float ComputeError(const Eigen::MatrixXi &orig,
+                              const Eigen::MatrixXi &compressed) {
+      float result = 0.0f;
+      Eigen::Vector4i o, c;
+      for (int y = 0; y < orig.rows(); ++y) {
+        for (int x = 0; x < orig.cols(); ++x) {
+          result += (MakeColorVector(orig(y, x)) -
+                     MakeColorVector(compressed(y, x))).squaredNorm();
+        }
+      }
+      
+      return sqrtf(result / (orig.rows()*orig.cols()));
+    }
+    
+    static Eigen::MatrixXi Downscale(Eigen::MatrixXi &orig) {
+      Eigen::MatrixXi result(orig.rows()>>2, orig.cols()>>2);
+      for (int j = 0; j < result.rows(); ++j) {
+        for (int i = 0; i < result.cols(); ++i) {
+          result(j, i) = orig(j*4, i*4);
+        }
+      }
+      
+      return result;
+    }
+    
+    static Eigen::MatrixXi Upscale4x4(Eigen::MatrixXi &orig) {
+      Eigen::MatrixXi result(orig.rows() * 4, orig.cols() * 4);
+      int x, y, x1, y1;
+      float x_diff, y_diff;
+      Eigen::Vector4i a, b, c, d, color;
+      for (int j = 0; j < result.rows(); ++j) {
+        for (int i = 0; i < result.cols(); ++i) {
+          /* Get the indices of the four neighboring pixels */
+          x = (i>>2);   /* (i/4) */
+          y = (j>>2);   /* (j/4) */
+          x1 = Clamp(x+1, 0, orig.cols()-1);
+          y1 = Clamp(y+1, 0, orig.rows()-1);
+          x_diff = (i - (x*4)) * ONE_FOURTH;
+          y_diff = (j - (y*4)) * ONE_FOURTH;
+          
+          /* Get the colors of the neighboring pixels */
+          a = MakeColorVector(orig(y, x));
+          b = MakeColorVector(orig(y, x1));
+          c = MakeColorVector(orig(y1, x));
+          d = MakeColorVector(orig(y1, x1));
+          
+          /* Do the bilinear interpolation for each channel */
+          for (int k = 0; k < 4; ++k) {
+            color(k) = static_cast<int>(lerp(lerp(static_cast<float>(a(k)),
+                                                  static_cast<float>(b(k)),
+                                                  x_diff),
+                                             lerp(static_cast<float>(c(k)),
+                                                  static_cast<float>(d(k)),
+                                                  x_diff),
+                                             y_diff));
+          }
+          
+          /* Store the result */
+          result(j, i) = MakeRGBA(color);
+        }
+      }
+      
+      return result;
+    }
+
   } /* namespace util */
 } /* namespace pvrtex */
 
