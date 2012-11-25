@@ -1,10 +1,12 @@
-//
-//  LeastSquaresSolver.cpp
-//  pvrtex
-//
-//  Created by Chirantan Ekbote on 11/14/12.
-//
-//
+/*=========================================================================*/
+/*                                                                         */
+/* @file            Optimizer.cpp                                          */
+/* @author          Chirantan Ekbote (ekbote@seas.harvard.edu)             */
+/* @date            2012/11/14                                             */
+/* @version         0.1                                                    */
+/* @brief           Optimizer for generating bright and dark images        */
+/*                                                                         */
+/*=========================================================================*/
 
 #include "../inc/Optimizer.h"
 
