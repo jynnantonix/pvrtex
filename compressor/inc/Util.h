@@ -27,8 +27,9 @@ namespace pvrtex {
                                     static_cast<float>(b)));
     }
     
-    inline float lerp(const float a, const float b, const float delta) {
-      return ((1-delta) * a) + (delta*b);
+    template<typename T>
+    inline T lerp(const T &a, const T &b, const float delta) {
+      return ((1.0f-delta) * a) + (delta*b);
     }
     
     inline BYTE MakeAlpha(unsigned int p) {
@@ -54,7 +55,7 @@ namespace pvrtex {
                              static_cast<int>(MakeBlue(p)));
     }
     
-    inline unsigned int MakeRGBA(Eigen::Vector4i p) {
+    inline unsigned int MakeRGBA(Eigen::Vector4i &p) {
       return (((p(0) & 0x000000FF)<<FI_RGBA_ALPHA_SHIFT) |
               ((p(1) & 0x000000FF)<<FI_RGBA_RED_SHIFT) |
               ((p(2) & 0x000000FF)<<FI_RGBA_GREEN_SHIFT) |
