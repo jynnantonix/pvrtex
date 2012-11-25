@@ -45,15 +45,15 @@ namespace pvrtex
   private:
     Compressor();
     
-    Eigen::MatrixXf ComputeModulation(Eigen::MatrixXi &orig,
-                                      Eigen::MatrixXi &dark,
-                                      Eigen::MatrixXi &bright);
+    Eigen::MatrixXf ComputeModulation(const Eigen::MatrixXi &orig,
+                                      const Eigen::MatrixXi &dark,
+                                      const Eigen::MatrixXi &bright);
     
-    Eigen::MatrixXi ModulateImage(Eigen::MatrixXi &dark,
-                                  Eigen::MatrixXi &bright,
-                                  Eigen::MatrixXf &mod);
-    float ComputeError(Eigen::MatrixXi &orig,
-                       Eigen::MatrixXi &compressed);
+    Eigen::MatrixXi ModulateImage(const Eigen::MatrixXi &dark,
+                                  const Eigen::MatrixXi &bright,
+                                  const Eigen::MatrixXf &mod);
+    float ComputeError(const Eigen::MatrixXi &orig,
+                       const Eigen::MatrixXi &compressed);
     
     int width_;
     int height_;
