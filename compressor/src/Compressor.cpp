@@ -11,11 +11,10 @@
 #include "../inc/Compressor.h"
 
 namespace pvrtex {
-  Compressor::Compressor(int w, int h, int sw, IMAGE_FORMAT f, BYTE *d)
+  Compressor::Compressor(int w, int h, IMAGE_FORMAT f, unsigned int *d)
   :
   width_(w),
   height_(h),
-  scan_width_(sw),
   format_(f),
   data_(d)
   {
@@ -25,54 +24,9 @@ namespace pvrtex {
   {
   }
   
-  inline void Compressor::set_width(int w)
-  {
-    width_ = w;
-  }
-  
-  inline void Compressor::set_height(int h)
-  {
-    height_ = h;
-  }
-  
-  inline void Compressor::set_scan_width(int sw)
-  {
-    scan_width_ = sw;
-  }
-  
-  inline void Compressor::set_data(BYTE *d)
-  {
-    data_ = d;
-  }
-  
-  inline int Compressor::width()
-  {
-    return width_;
-  }
-  
-  inline int Compressor::height()
-  {
-    return height_;
-  }
-  
-  inline int Compressor::scan_width()
-  {
-    return scan_width_;
-  }
-  
-  inline Compressor::IMAGE_FORMAT Compressor::format()
-  {
-    return format_;
-  }
-  
-  inline BYTE* Compressor::data()
-  {
-    return data_;
-  }
-  
-  Eigen::MatrixXf Compressor::ComputeModulation(Eigen::MatrixXi orig,
-                                                Eigen::MatrixXi dark,
-                                                Eigen::MatrixXi bright) {
+  Eigen::MatrixXf Compressor::ComputeModulation(Eigen::MatrixXi &orig,
+                                                Eigen::MatrixXi &dark,
+                                                Eigen::MatrixXi &bright) {
     static const float kModulationValues[] = { 0.0f, 0.375f, 0.625f, 1.0f };
     Eigen::MatrixXf result(height_, width_);
     Eigen::Vector4f o, d, b;
@@ -87,8 +41,8 @@ namespace pvrtex {
         /* Set the appropriate modulation value */
         delta_min = FLT_MAX;
         for (int k = 0; k < 4; ++k) {
-          delta = (((1-kModulationValues[k])*d +
-                    kModulationValues[k]*b) - o).squaredNorm();
+          delta = (util::lerp<Eigen::Vector4f>(d, b, kModulationValues[k]) -
+                   o).squaredNorm();
           if (delta < delta_min) {
             result(y, x) = kModulationValues[k];
             delta_min = delta;
@@ -100,7 +54,7 @@ namespace pvrtex {
     return result;
   }
   
-  void Compressor::Compress(BYTE *out, IMAGE_FORMAT format) {
+  void Compressor::Compress(unsigned int *out, IMAGE_FORMAT format) {
     //unsigned int *bits = (unsigned int*) malloc(m_height * m_scanWidth);
     //bits = (unsigned int*)m_data;
     //memcpy((void*)out, (void*)m_data, m_height * m_scanWidth);
@@ -109,35 +63,30 @@ namespace pvrtex {
     Eigen::MatrixXi bits(height_, width_);
     for (int y = 0; y < height_; ++y) {
       for (int x = 0; x < width_; ++x) {
-        unsigned int pixel = 0;
-        int idx = 4 * (y*width_ + x);
-        for (int k = 0; k < 4; ++k) {
-          pixel = (pixel << 8) | data_[idx + k];
-        }
-        bits(y, x) = pixel;
+        bits(y, x) = data_[y*width_ + x];
       }
     }
     
     /* Wavelet filter */
     Wavelet filter(Wavelet::BASIC);
-    Eigen::MatrixXi result = filter.Upscale(filter.Downscale(bits));
+    Eigen::MatrixXi result = filter.Downscale(bits);
     
     /* Initial dark and bright prototypes */
-    Eigen::MatrixXi dark = Eigen::MatrixXi::Constant(height_>>2,
-                                                     width_>>2,
-                                                     0x20202020);
-    Eigen::MatrixXi bright = Eigen::MatrixXi::Constant(height_>>2,
+    Eigen::MatrixXi offset = Eigen::MatrixXi::Constant(height_>>2,
                                                        width_>>2,
-                                                       0xDFDFDFDF);
+                                                       0x20202020);
+    Eigen::MatrixXi dark = result - offset;
+    Eigen::MatrixXi bright = result + offset;
     
     /* Iterative optimization */
-    for (int k = 0; k < 10; ++k) {
+    Eigen::MatrixXf mod;
+    for (int k = 0; k < 12; ++k) {
       /* Upscale images */
       dark = filter.Upscale(dark);
       bright = filter.Upscale(bright);
       
       /* Calculate the initial modulation image */
-      Eigen::MatrixXf mod = ComputeModulation(bits, dark, bright);
+      mod = ComputeModulation(bits, dark, bright);
       
       /* Least squares optimization */
       Optimizer opt(bits, mod);
@@ -147,28 +96,59 @@ namespace pvrtex {
     }
     
     /* Write the final output */
-    for (int y = 0; y < dark.rows(); ++y) {
-      for (int x = 0; x < dark.cols(); ++x) {
-        int idx = 4*(y*width_ + x);
-        unsigned int pixel = dark(y, x);
-        out[idx] = util::MakeAlpha(pixel);
-        out[idx+1] = util::MakeRed(pixel);
-        out[idx+2] = util::MakeGreen(pixel);
-        out[idx+3] = util::MakeBlue(pixel);
+    dark = filter.Upscale(dark);
+    bright = filter.Upscale(bright);
+    result = ModulateImage(dark, bright, mod);
+    for (int y = 0; y < result.rows(); ++y) {
+      for (int x = 0; x < result.cols(); ++x) {
+        out[y*width_ + x] = result(y, x);
       }
     }
     
-    for (int y = 0; y < bright.rows(); ++y) {
-      for (int x = 0; x < bright.cols(); ++x) {
-        int idx = (1024*512)+(4*(y*width_ + x));
-        unsigned int pixel = bright(y, x);
-        out[idx] = util::MakeAlpha(pixel);
-        out[idx+1] = util::MakeRed(pixel);
-        out[idx+2] = util::MakeGreen(pixel);
-        out[idx+3] = util::MakeBlue(pixel);
+    /* Get the error */
+    std::cout << "RMS Error: " << ComputeError(bits, result) << std::endl;
+//    for (int y = 0; y < bright.rows(); ++y) {
+//      for (int x = 0; x < bright.cols(); ++x) {
+//        int idx = (1024*512)+(4*(y*width_ + x));
+//        unsigned int pixel = bright(y, x);
+//        out[idx] = util::MakeAlpha(pixel);
+//        out[idx+1] = util::MakeRed(pixel);
+//        out[idx+2] = util::MakeGreen(pixel);
+//        out[idx+3] = util::MakeBlue(pixel);
+//      }
+//    }
+    
+  }
+  
+  Eigen::MatrixXi Compressor::ModulateImage(Eigen::MatrixXi &dark,
+                                            Eigen::MatrixXi &bright,
+                                            Eigen::MatrixXf &mod) {
+    Eigen::MatrixXi result(height_, width_);
+    Eigen::Vector4f d, b;
+    Eigen::Vector4i r;
+    for (int y = 0; y < height_; ++y) {
+      for (int x = 0; x < width_; ++x) {
+        d = util::MakeColorVector(dark(y, x)).cast<float>();
+        b = util::MakeColorVector(bright(y, x)).cast<float>();
+        r = util::lerp<Eigen::Vector4f>(d,b, mod(y, x)).cast<int>();
+        result(y, x) = util::MakeRGBA(r);
+      }
+    }
+    return result;
+  }
+  
+  float Compressor::ComputeError(Eigen::MatrixXi &orig,
+                                 Eigen::MatrixXi &compressed) {
+    float result = 0.0f;
+    Eigen::Vector4i o, c;
+    for (int y = 0; y < height_; ++y) {
+      for (int x = 0; x < width_; ++x) {
+        result += (util::MakeColorVector(orig(y, x)) -
+                   util::MakeColorVector(compressed(y, x))).squaredNorm();
       }
     }
     
+    return sqrtf(result / (width_*height_*4));
   }
   
   void Compressor::WriteToFile(const char *filename)

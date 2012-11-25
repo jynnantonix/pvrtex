@@ -26,35 +26,39 @@ namespace pvrtex
   public:
     enum IMAGE_FORMAT { A8R8G8B8, R8G8B8, PVRTC4, PVRTC2 };
     
-    Compressor(int w, int h, int sw, IMAGE_FORMAT f, BYTE *d);
+    Compressor(int w, int h, IMAGE_FORMAT f, unsigned int *d);
     ~Compressor();
     
-    inline void set_width(int w);
-    inline void set_height(int h);
-    inline void set_scan_width(int sw);
-    inline void set_format(IMAGE_FORMAT f);
-    inline void set_data(BYTE *d);
+    inline void set_width(int w) { width_ = w; }
+    inline void set_height(int h) { height_ = h; }
+    inline void set_format(IMAGE_FORMAT f) { format_ = f; }
+    inline void set_data(unsigned int *d) { data_ = d; }
     
-    inline int width();
-    inline int height();
-    inline int scan_width();
-    inline IMAGE_FORMAT format();
-    inline BYTE* data();
+    inline int width() { return width_; }
+    inline int height() { return height_; }
+    inline IMAGE_FORMAT format() { return format_; }
+    inline unsigned int* data() { return data_; }
     
-    void Compress(BYTE *out, IMAGE_FORMAT format);
+    void Compress(unsigned int *out, IMAGE_FORMAT format);
     
     void WriteToFile(const char *filename);
   private:
     Compressor();
     
-    Eigen::MatrixXf ComputeModulation(Eigen::MatrixXi orig,
-                                      Eigen::MatrixXi dark,
-                                      Eigen::MatrixXi bright);
+    Eigen::MatrixXf ComputeModulation(Eigen::MatrixXi &orig,
+                                      Eigen::MatrixXi &dark,
+                                      Eigen::MatrixXi &bright);
+    
+    Eigen::MatrixXi ModulateImage(Eigen::MatrixXi &dark,
+                                  Eigen::MatrixXi &bright,
+                                  Eigen::MatrixXf &mod);
+    float ComputeError(Eigen::MatrixXi &orig,
+                       Eigen::MatrixXi &compressed);
+    
     int width_;
     int height_;
-    int scan_width_;
     IMAGE_FORMAT format_;
-    BYTE *data_;
+    unsigned int *data_;
   };
 } /* namespace pvrtex */
 #endif /* defined(__pvrtex__Compressor__) */
