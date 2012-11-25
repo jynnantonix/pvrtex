@@ -3,7 +3,7 @@
 /* @file            Optimizer.h                                            */
 /* @author          Chirantan Ekbote (ekbote@seas.harvard.edu)             */
 /* @date            2012/11/14                                             */
-/* @version         0.1                                                    */
+/* @version         0.2                                                    */
 /* @brief           Optimizer for generating bright and dark images        */
 /*                                                                         */
 /*=========================================================================*/

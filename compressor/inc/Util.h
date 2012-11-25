@@ -56,10 +56,10 @@ namespace pvrtex {
     }
     
     inline unsigned int MakeRGBA(const Eigen::Vector4i &p) {
-      return (((p(0) & 0x000000FF)<<FI_RGBA_ALPHA_SHIFT) |
-              ((p(1) & 0x000000FF)<<FI_RGBA_RED_SHIFT) |
-              ((p(2) & 0x000000FF)<<FI_RGBA_GREEN_SHIFT) |
-              ((p(3) & 0x000000FF)<<FI_RGBA_BLUE_SHIFT));
+      return ((Clamp(p(0), 0, 255)<<FI_RGBA_ALPHA_SHIFT) |
+              (Clamp(p(1), 0, 255)<<FI_RGBA_RED_SHIFT) |
+              (Clamp(p(2), 0, 255)<<FI_RGBA_GREEN_SHIFT) |
+              (Clamp(p(3), 0, 255)<<FI_RGBA_BLUE_SHIFT));
     }
     
     inline unsigned int MakeRGBA(unsigned int a, unsigned int r,
@@ -120,12 +120,12 @@ namespace pvrtex {
       for (int j = 0; j < result.rows(); ++j) {
         for (int i = 0; i < result.cols(); ++i) {
           /* Get the indices of the four neighboring pixels */
-          x = (i>>2);   /* (i/4) */
-          y = (j>>2);   /* (j/4) */
-          x1 = Clamp(x+1, 0, orig.cols()-1);
-          y1 = Clamp(y+1, 0, orig.rows()-1);
-          x_diff = (i - (x*4)) * ONE_FOURTH;
-          y_diff = (j - (y*4)) * ONE_FOURTH;
+          x = Clamp(i-2, 0, result.cols()-1)>>2;   /* (i/4) */
+          y = Clamp(j-2, 0, result.rows()-1)>>2;   /* (j/4) */
+          x1 = x+1;
+          y1 = y+1;
+          x_diff = (Clamp(i-2, 0, result.cols()) - (x*4)) * ONE_FOURTH;
+          y_diff = (Clamp(j-2, 0, result.rows()) - (y*4)) * ONE_FOURTH;
           
           /* Get the colors of the neighboring pixels */
           a = MakeColorVector(orig(y, x));
