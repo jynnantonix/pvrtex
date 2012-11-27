@@ -1,12 +1,12 @@
-#=====================================================================================#
-#
-#	@file		CMakeLists.txt
-#	@author		Chirantan Ekbote (ekbote@seas.harvard.edu)
-#   @date       2012/11/04
-#   @version    0.1
-#	@brief		Project file for cross-platform compatibility
-#
-#=====================================================================================#
+#==============================================================================#
+#                                                                              #
+#   @file	CMakeLists.txt                                                 #
+#   @author	Chirantan Ekbote (ekbote@seas.harvard.edu)                     #
+#   @date       2012/11/04                                                     #
+#   @version    0.2                                                            #
+#   @brief	Project file for cross-platform compatibility                  #
+#                                                                              #
+#==============================================================================#
 
 project( pvrtex )
 
@@ -18,8 +18,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
 # Get OpenMP
 find_package(OpenMP)
 if(OPENMP_FOUND)
-  add_definitions(${OpenMP_CXX_FLAGS})
+  list(APPEND CMAKE_CXX_FLAGS ${OpenMP_CXX_FLAGS})
 endif(OPENMP_FOUND)
+
 if(APPLE)
   set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
 endif(APPLE)
