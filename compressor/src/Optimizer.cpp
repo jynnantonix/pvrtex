@@ -116,9 +116,9 @@ namespace pvrtex {
       for (int x = 0; x < orig_.cols(); ++x) {
         diff = (util::MakeColorVector(orig_(y,x)) -
                 util::MakeColorVector(comp(y,x)));
-//        red(y,x) = util::MakeRed(orig(y,x));
-//        green(y,x) = util::MakeGreen(orig(y,x));
-//        blue(y,x) = util::MakeBlue(orig(y,x));
+//        red_(y,x) = util::MakeRed(orig_(y,x));
+//        green_(y,x) = util::MakeGreen(orig_(y,x));
+//        blue_(y,x) = util::MakeBlue(orig_(y,x));
         red_(y,x) = diff(0);
         green_(y,x) = diff(1);
         blue_(y,x) = diff(2);
@@ -207,6 +207,13 @@ namespace pvrtex {
                                     util::Clamp(optimal_red(idx+1), -32, 32),
                                     util::Clamp(optimal_green(idx+1), -32, 32),
                                     util::Clamp(optimal_blue(idx+1), -32, 32)));
+//        dark_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx),
+//                                                           optimal_green(idx),
+//                                                           optimal_blue(idx)));
+//        bright_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx+1),
+//                                                             optimal_green(idx+1),
+//                                                             optimal_blue(idx+1)));
+
       }
     }
   }
@@ -214,7 +221,7 @@ namespace pvrtex {
   void Optimizer::Optimize(const Eigen::MatrixXf &m) {
     mod_ = m;
     ComputeUpdateVector();
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int j = 0; j < dark_.rows(); j+=2) {
       for (int i = 0; i < dark_.cols(); i+=2) {
         OptimizeWindow(j, i);
