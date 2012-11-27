@@ -15,6 +15,15 @@ cmake_minimum_required(VERSION 2.8)
 # Add the local module directory so cmake can find the right files
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
 
+# Get OpenMP
+find_package(OpenMP)
+if(OPENMP_FOUND)
+  add_definitions(${OpenMP_CXX_FLAGS})
+endif(OPENMP_FOUND)
+if(APPLE)
+  set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
+endif(APPLE)
+
 # Get FreeImage
 find_package(FreeImage REQUIRED)
 
