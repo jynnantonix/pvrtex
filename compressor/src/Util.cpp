@@ -82,6 +82,55 @@ namespace pvrtex {
       return result;
     }
 
+    Eigen::MatrixXi RGBtoYUV(const Eigen::MatrixXi &orig) {
+      Eigen::MatrixXi result(orig.rows(), orig.cols());
+      
+      // Transformation table
+      Eigen::Matrix3f table;
+      table << 0.257, 0.504, 0.098,
+      -0.148, -0.291, 0.439,
+      0.439, -0.368, -0.071;
+      Eigen::Vector3f offset(16, 128, 128);
+      
+      // Do the tranformation
+      Eigen::Vector3f color;
+      for (int y = 0; y < orig.rows(); ++y) {
+        for (int x = 0; x < orig.cols(); ++x) {
+          color = table * MakeColorVector(orig(y, x)).cast<float>();
+          
+          result(y, x) = MakeRGB((color + offset).cast<int>());
+        }
+      }
+      
+      return result;
+    }
+    
+    Eigen::MatrixXi YUVtoRGB(const Eigen::MatrixXi &orig) {
+      Eigen::MatrixXi result(orig.rows(), orig.cols());
+      
+      // Transformation table
+      Eigen::Matrix3f table;
+      table <<1.164, 0.0, 1.596,
+      1.164, -0.391, -0.813,
+      1.164, 2.018, 0.0;
+      Eigen::Vector3f offset(16, 128, 128);
+      
+      // Do the tranformation
+      Eigen::Vector3f color;
+      for (int y = 0; y < orig.rows(); ++y) {
+        for (int x = 0; x < orig.cols(); ++x) {
+          // Reverse the storage offsets first
+          color = MakeColorVector(orig(y, x)).cast<float>();
+          color -= offset;
+          
+          // Now convert back to RGB
+          result(y, x) = MakeRGB((table * color).cast<int>());
+        }
+      }
+      
+      return result;
+    }
+    
     float ComputeError(const Eigen::MatrixXi &orig,
                        const Eigen::MatrixXi &compressed) {
       float result = 0.0f;

@@ -63,8 +63,11 @@ namespace pvrtex {
       }
     }
     
+    /* Convert to YUV */
+    Eigen::MatrixXi yuv_bits = util::RGBtoYUV(bits);
+    
     /* Wavelet filter */
-    Eigen::MatrixXi result = util::Downscale(bits);
+    Eigen::MatrixXi result = util::Downscale(yuv_bits);
     
     /* Initial dark and bright prototypes */
     const Eigen::MatrixXi offset = Eigen::MatrixXi::Constant(height_>>2,
@@ -74,10 +77,10 @@ namespace pvrtex {
     Eigen::MatrixXi bright = result + offset;
     
     /* Iterative optimization */
-    Optimizer opt(bits, dark, bright);
+    Optimizer opt(yuv_bits, dark, bright);
     for (int k = 0; k < 12; ++k) {
       /* Least squares optimization */
-      opt.Optimize(ComputeModulation(bits,
+      opt.Optimize(ComputeModulation(yuv_bits,
                                      util::Upscale4x4(opt.dark()),
                                      util::Upscale4x4(opt.bright())));
     }
@@ -86,7 +89,9 @@ namespace pvrtex {
     result = util::ModulateImage(util::Upscale4x4(opt.dark()),
                                  util::Upscale4x4(opt.bright()),
                                  opt.mod());
-    //result = util::Upscale4x4(opt.dark());
+
+    /* Convert back to RGB */
+    result = util::YUVtoRGB(result);
     for (int y = 0; y < result.rows(); ++y) {
       for (int x = 0; x < result.cols(); ++x) {
         out[y*width_ + x] = result(y, x);

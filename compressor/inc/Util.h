@@ -97,8 +97,12 @@ namespace pvrtex {
     
     Eigen::MatrixXi Upscale4x4(const Eigen::MatrixXi &orig);
     
+    Eigen::MatrixXi RGBtoYUV(const Eigen::MatrixXi &orig);
+    Eigen::MatrixXi YUVtoRGB(const Eigen::MatrixXi &orig);
+    
     float ComputeError(const Eigen::MatrixXi &orig,
                        const Eigen::MatrixXi &compressed);
+    
 
   } /* namespace util */
 } /* namespace pvrtex */
