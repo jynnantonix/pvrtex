@@ -15,9 +15,6 @@
 #include <FreeImage.h>
 #include <Eigen/Dense>
 
-#include "Util.h"
-#include "Optimizer.h"
-
 namespace pvrtex {
 class Compressor {
 public:

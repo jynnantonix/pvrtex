@@ -29,7 +29,7 @@ inline int Clamp(int x, int a, int b) {
 }
 
 template<typename T>
-    inline T lerp(const T &a, const T &b, const float delta) {
+inline T lerp(const T &a, const T &b, const float delta) {
   return ((1.0f-delta) * a) + (delta*b);
 }
 

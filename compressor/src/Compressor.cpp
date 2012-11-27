@@ -9,6 +9,8 @@
 /*==========================================================================*/
 
 #include "../inc/Compressor.h"
+#include "../inc/Util.h"
+#include "../inc/Optimizer.h"
 
 namespace pvrtex {
 Compressor::Compressor(int w, int h, IMAGE_FORMAT f, unsigned int *d)

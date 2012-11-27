@@ -229,8 +229,9 @@ void Optimizer::Optimize(const Eigen::MatrixXf &m) {
   }
 }
 
-void Compressor::WriteToFile(const char *filename) {
+void Optimizer::WriteToFile(const char *filename) {
     
 }
 
-}
+} /* namespace pvrtex */
+
