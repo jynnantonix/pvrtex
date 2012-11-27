@@ -11,6 +11,7 @@
 #ifndef __pvrtex__Optimizer__
 #define __pvrtex__Optimizer__
 
+#include <omp.h>
 #include <Eigen/Dense>
 #include <Eigen/SVD>
 
@@ -22,11 +23,9 @@ namespace pvrtex {
     enum SOLVER { SVD, QR, CHOLESKY };
     
     Optimizer(const Eigen::MatrixXi &o,
-              const Eigen::MatrixXf &m,
               Eigen::MatrixXi &d,
               Eigen::MatrixXi &b);
     Optimizer(const Eigen::MatrixXi &o,
-              const Eigen::MatrixXf &m,
               Eigen::MatrixXi &d,
               Eigen::MatrixXi &b,
               SOLVER s);
@@ -34,8 +33,9 @@ namespace pvrtex {
     
     inline Eigen::MatrixXi dark() { return dark_; }
     inline Eigen::MatrixXi bright() { return bright_; }
+    inline Eigen::MatrixXf mod() { return mod_; }
     
-    void Optimize();
+    void Optimize(const Eigen::MatrixXf &m);
   private:
     Optimizer();
     
@@ -47,8 +47,8 @@ namespace pvrtex {
     Eigen::MatrixXi blue_;
     Eigen::MatrixXi dark_;
     Eigen::MatrixXi bright_;
+    Eigen::MatrixXf mod_;
     const Eigen::MatrixXi orig_;
-    const Eigen::MatrixXf mod_;
     const SOLVER solv_;
     
     static const int window_width_;

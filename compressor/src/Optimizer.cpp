@@ -79,12 +79,11 @@ namespace pvrtex {
     0, 0, 0, 0, ROW(0.0625f)	// 1/16
   };
   
-  Optimizer::Optimizer(const Eigen::MatrixXi &o, const Eigen::MatrixXf &m,
-                       Eigen::MatrixXi &d, Eigen::MatrixXi &b) :
+  Optimizer::Optimizer(const Eigen::MatrixXi &o, Eigen::MatrixXi &d,
+                       Eigen::MatrixXi &b) :
   dark_(d),
   bright_(b),
   orig_(o),
-  mod_(m),
   solv_(SVD)
   {
     red_ = Eigen::MatrixXi(orig_.rows(), orig_.cols());
@@ -92,12 +91,11 @@ namespace pvrtex {
     blue_ = Eigen::MatrixXi(orig_.rows(), orig_.cols());
   }
   
-  Optimizer::Optimizer(const Eigen::MatrixXi &o, const Eigen::MatrixXf &m,
-                       Eigen::MatrixXi &d, Eigen::MatrixXi &b, SOLVER s):
+  Optimizer::Optimizer(const Eigen::MatrixXi &o, Eigen::MatrixXi &d,
+                       Eigen::MatrixXi &b, SOLVER s):
   dark_(d),
   bright_(b),
   orig_(o),
-  mod_(m),
   solv_(s)
   {
     red_ = Eigen::MatrixXi(orig_.rows(), orig_.cols());
@@ -109,10 +107,11 @@ namespace pvrtex {
   }
   
   void Optimizer::ComputeUpdateVector() {
-    Eigen::Vector4i diff;
+    Eigen::Vector3i diff;
     Eigen::MatrixXi comp = util::ModulateImage(util::Upscale4x4(dark_),
                                                util::Upscale4x4(bright_),
                                                mod_);
+#pragma omp parallel for
     for (int y = 0; y < orig_.rows(); ++y) {
       for (int x = 0; x < orig_.cols(); ++x) {
         diff = (util::MakeColorVector(orig_(y,x)) -
@@ -120,9 +119,9 @@ namespace pvrtex {
 //        red(y,x) = util::MakeRed(orig(y,x));
 //        green(y,x) = util::MakeGreen(orig(y,x));
 //        blue(y,x) = util::MakeBlue(orig(y,x));
-        red_(y,x) = diff(1);
-        green_(y,x) = diff(2);
-        blue_(y,x) = diff(3);
+        red_(y,x) = diff(0);
+        green_(y,x) = diff(1);
+        blue_(y,x) = diff(2);
       }
     }
   }
@@ -196,17 +195,15 @@ namespace pvrtex {
     for (int x = 0; x < 2; ++x) {
       for (int y = 0; y < 2; ++y) {
         idx = 4*y + 2*x;
-        dark_(j+y, i+x) = util::MakeRGBA(
-                              util::MakeColorVector(dark_(j+y, i+x)) +
-                              Eigen::Vector4i(
-                                  0xFFFFFFFF,
+        dark_(j+y, i+x) = util::Make565RGB(
+                              util::Make565ColorVector(dark_(j+y, i+x)) +
+                              Eigen::Vector3i(
                                   util::Clamp(optimal_red(idx), -32, 32),
                                   util::Clamp(optimal_green(idx), -32, 32),
                                   util::Clamp(optimal_blue(idx), -32, 32)));
-        bright_(j+y, i+x) = util::MakeRGBA(
-                                util::MakeColorVector(bright_(j+y, i+x)) +
-                                Eigen::Vector4i(
-                                    0xFFFFFFFF,
+        bright_(j+y, i+x) = util::Make565RGB(
+                                util::Make565ColorVector(bright_(j+y, i+x)) +
+                                Eigen::Vector3i(
                                     util::Clamp(optimal_red(idx+1), -32, 32),
                                     util::Clamp(optimal_green(idx+1), -32, 32),
                                     util::Clamp(optimal_blue(idx+1), -32, 32)));
@@ -214,8 +211,10 @@ namespace pvrtex {
     }
   }
   
-  void Optimizer::Optimize() {
+  void Optimizer::Optimize(const Eigen::MatrixXf &m) {
+    mod_ = m;
     ComputeUpdateVector();
+//#pragma omp parallel for
     for (int j = 0; j < dark_.rows(); j+=2) {
       for (int i = 0; i < dark_.cols(); i+=2) {
         OptimizeWindow(j, i);
