@@ -3,7 +3,7 @@
 /* @file            Optimizer.h                                            */
 /* @author          Chirantan Ekbote (ekbote@seas.harvard.edu)             */
 /* @date            2012/11/14                                             */
-/* @version         0.2                                                    */
+/* @version         0.3                                                    */
 /* @brief           Optimizer for generating bright and dark images        */
 /*                                                                         */
 /*=========================================================================*/
@@ -11,9 +11,7 @@
 #ifndef __pvrtex__Optimizer__
 #define __pvrtex__Optimizer__
 
-#include <omp.h>
 #include <Eigen/Dense>
-#include <Eigen/SVD>
 
 #include "Util.h"
 
@@ -21,14 +19,11 @@ namespace pvrtex {
 class Optimizer {
 public:
   enum SOLVER { SVD, QR, CHOLESKY };
-  
-  Optimizer(const Eigen::MatrixXi &o,
-            Eigen::MatrixXi &d,
-            Eigen::MatrixXi &b);
+
   Optimizer(const Eigen::MatrixXi &o,
             Eigen::MatrixXi &d,
             Eigen::MatrixXi &b,
-            SOLVER s);
+            SOLVER s, util::DATA_FORMAT f);
   ~Optimizer();
   
   inline Eigen::MatrixXi dark() { return dark_; }
@@ -52,6 +47,7 @@ private:
   Eigen::MatrixXf mod_;
   const Eigen::MatrixXi orig_;
   const SOLVER solv_;
+  const util::DATA_FORMAT format_;
   
   static const int window_width_;
   static const int window_height_;

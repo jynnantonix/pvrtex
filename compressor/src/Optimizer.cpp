@@ -3,10 +3,13 @@
 /* @file            Optimizer.cpp                                          */
 /* @author          Chirantan Ekbote (ekbote@seas.harvard.edu)             */
 /* @date            2012/11/14                                             */
-/* @version         0.2                                                    */
+/* @version         0.3                                                    */
 /* @brief           Optimizer for generating bright and dark images        */
 /*                                                                         */
 /*=========================================================================*/
+
+#include <omp.h>
+#include <Eigen/SVD>
 
 #include "../inc/Optimizer.h"
 
@@ -80,23 +83,13 @@ const float Optimizer::kBottomRight[] =
 };
   
 Optimizer::Optimizer(const Eigen::MatrixXi &o, Eigen::MatrixXi &d,
-                     Eigen::MatrixXi &b) :
-    dark_(d),
-    bright_(b),
-    orig_(o),
-    solv_(SVD)
-{
-  red_ = Eigen::MatrixXi(orig_.rows(), orig_.cols());
-  green_ = Eigen::MatrixXi(orig_.rows(), orig_.cols());
-  blue_ = Eigen::MatrixXi(orig_.rows(), orig_.cols());
-}
+                     Eigen::MatrixXi &b, SOLVER s, util::DATA_FORMAT f) :
   
-Optimizer::Optimizer(const Eigen::MatrixXi &o, Eigen::MatrixXi &d,
-                     Eigen::MatrixXi &b, SOLVER s):
-    dark_(d),
-    bright_(b),
-    orig_(o),
-    solv_(s)
+  dark_(d),
+  bright_(b),
+  orig_(o),
+  solv_(s),
+  format_(f)
 {
   red_ = Eigen::MatrixXi(orig_.rows(), orig_.cols());
   green_ = Eigen::MatrixXi(orig_.rows(), orig_.cols());
@@ -108,14 +101,14 @@ Optimizer::~Optimizer() {
   
 void Optimizer::ComputeUpdateVector() {
   Eigen::Vector3i diff;
-  Eigen::MatrixXi comp = util::ModulateImage(util::Upscale4x4(dark_),
-                                             util::Upscale4x4(bright_),
+  Eigen::MatrixXi comp = util::ModulateImage(util::Upscale4x4(dark_, format_),
+                                             util::Upscale4x4(bright_, format_),
                                              mod_);
 #pragma omp parallel for
   for (int y = 0; y < orig_.rows(); ++y) {
     for (int x = 0; x < orig_.cols(); ++x) {
-      diff = (util::MakeColorVector(orig_(y,x)) -
-              util::MakeColorVector(comp(y,x)));
+      diff = (util::MakeColorVector(orig_(y,x), util::PVR888) -
+              util::MakeColorVector(comp(y,x), util::PVR888));
       //        red_(y,x) = util::MakeRed(orig_(y,x));
       //        green_(y,x) = util::MakeGreen(orig_(y,x));
       //        blue_(y,x) = util::MakeBlue(orig_(y,x));
@@ -195,24 +188,24 @@ void Optimizer::OptimizeWindow(int j, int i) {
   for (int x = 0; x < 2; ++x) {
     for (int y = 0; y < 2; ++y) {
       idx = 4*y + 2*x;
-      dark_(j+y, i+x) = util::Make565RGB(
-          util::Make565ColorVector(dark_(j+y, i+x)) +
-          Eigen::Vector3i(
-              util::Clamp(optimal_red(idx), -32, 32),
-              util::Clamp(optimal_green(idx), -32, 32),
-              util::Clamp(optimal_blue(idx), -32, 32)));
-      bright_(j+y, i+x) = util::Make565RGB(
-          util::Make565ColorVector(bright_(j+y, i+x)) +
-          Eigen::Vector3i(
-              util::Clamp(optimal_red(idx+1), -32, 32),
-              util::Clamp(optimal_green(idx+1), -32, 32),
-              util::Clamp(optimal_blue(idx+1), -32, 32)));
-      //        dark_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx),
-      //                                                           optimal_green(idx),
-      //                                                           optimal_blue(idx)));
-      //        bright_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx+1),
-      //                                                             optimal_green(idx+1),
-      //                                                             optimal_blue(idx+1)));
+      dark_(j+y, i+x) = util::MakeRGB(
+          util::MakeColorVector(dark_(j+y, i+x), format_) +
+          Eigen::Vector3i(util::Clamp(optimal_red(idx), -32, 32),
+                          util::Clamp(optimal_green(idx), -32, 32),
+                          util::Clamp(optimal_blue(idx), -32, 32)),
+                                      format_);
+      bright_(j+y, i+x) = util::MakeRGB(
+          util::MakeColorVector(bright_(j+y, i+x), format_) +
+          Eigen::Vector3i(util::Clamp(optimal_red(idx+1), -32, 32),
+                          util::Clamp(optimal_green(idx+1), -32, 32),
+                          util::Clamp(optimal_blue(idx+1), -32, 32)),
+                                        format_);
+//      dark_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx),
+//                                                         optimal_green(idx),
+//                                                         optimal_blue(idx)));
+//      bright_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx+1),
+//                                                           optimal_green(idx+1),
+//                                                           optimal_blue(idx+1)));
 
     }
   }

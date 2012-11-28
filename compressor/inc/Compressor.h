@@ -3,23 +3,33 @@
 /* @file            Compressor.h                                           */
 /* @author          Chirantan Ekbote (ekbote@seas.harvard.edu)             */
 /* @date            2012/11/05                                             */
-/* @version         0.3                                                    */
+/* @version         0.4                                                    */
 /* @brief           Class declaration for pvr texture compressor           */
 /*                                                                         */
 /*=========================================================================*/
 #ifndef __pvrtex__Compressor__
 #define __pvrtex__Compressor__
 
-#include <iostream>
-#include <cfloat>
-#include <FreeImage.h>
 #include <Eigen/Dense>
 
 namespace pvrtex {
 class Compressor {
 public:
-  enum IMAGE_FORMAT { A8R8G8B8, R8G8B8, PVRTC4, PVRTC2 };
+  enum IMAGE_FORMAT { PVRTC_4BPP,   /* Standard 4bpp PVR texture format.     */
+                      PVRTC_2BPP,   /* Standard 2bpp PVR texture format.     */
+                      YUV_4BPP,     /* 4bpp compression in YUV color space.  */
+                      YUV_OPT_4BPP, /* Same as YUV_4BPP but bit allocation   */
+                                    /* for each channel is optimized         */
+                      YUV_EXT_4BPP, /* Sacrifice color choices to get more   */
+                                    /* choices of modulation values.         */
+                      YUV_2BPP,     /* Sacrifice color choices and encode    */
+                                    /* modulation values alternately in a    */
+                                    /* checkerboard pattern to save space.   */
+                      PVR_UNDEFINED /* Something went wrong, this shold not  */
+                                    /* be chosen.                            */
+  };
   
+  Compressor();
   Compressor(int w, int h, IMAGE_FORMAT f, unsigned int *d);
   ~Compressor();
   
@@ -33,11 +43,13 @@ public:
   inline IMAGE_FORMAT format() { return format_; }
   inline unsigned int* data() { return data_; }
   
-  void Compress(unsigned int *out, IMAGE_FORMAT format);
+  void Compress(unsigned int *out);
   
 private:
-  Compressor();
-    
+  /* Don't allow copy contructor or assignment */
+  Compressor(const Compressor &c);
+  void operator=(const Compressor &c);
+  
   Eigen::MatrixXf ComputeModulation(const Eigen::MatrixXi &orig,
                                     const Eigen::MatrixXi &dark,
                                     const Eigen::MatrixXi &bright);
