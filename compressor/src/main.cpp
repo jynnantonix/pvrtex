@@ -174,5 +174,22 @@ int main(int argc, char **argv)
                                      true);
   FreeImage_Save(FIF_PNG, out, (std::string(argv[2]) + "_yuvopt4bpp.png").c_str());
   FreeImage_Unload(out);
+  
+  std::cout << "Compressing using 16 bits for color in YUV colorspace at 4bpp..." << std::flush;
+  cmp.set_format(pvrtex::Compressor::YUV_EXT_4BPP);
+  cmp.Compress(reinterpret_cast<unsigned int*>(result));
+  // Use FreeImage to write out the uncompressed 32-bit ARGB result
+  // as a PNG file
+  out = FreeImage_ConvertFromRawBits(result,
+                                     width,
+                                     height,
+                                     scan_width,
+                                     32,
+                                     FI_RGBA_RED_MASK,
+                                     FI_RGBA_GREEN_MASK,
+                                     FI_RGBA_BLUE_MASK,
+                                     true);
+  FreeImage_Save(FIF_PNG, out, (std::string(argv[2]) + "_yuvext4bpp.png").c_str());
+  FreeImage_Unload(out);
   return EXIT_SUCCESS;
 }
