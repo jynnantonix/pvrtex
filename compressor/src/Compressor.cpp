@@ -43,10 +43,19 @@ Compressor::~Compressor()
 Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
                                               const Eigen::MatrixXi &dark,
                                               const Eigen::MatrixXi &bright) {
-  static const float kModulationValues[] = { 0.0f, 0.375f, 0.625f, 1.0f };
+  Eigen::VectorXf modulation_values;
   Eigen::MatrixXf result(height_, width_);
   Eigen::Vector3f o, d, b;
   float delta, delta_min;
+  
+  if (format_ == YUV_EXT_4BPP || format_ == YUV_2BPP) {
+    modulation_values = Eigen::VectorXf(8);
+    modulation_values << 0.0f, 0.14285f, 0.28571f, 0.42847f, 0.57142f,
+    0.71428f, 0.85714f, 1.0f;
+  } else {
+    modulation_values = Eigen::VectorXf(4);
+    modulation_values << 0.0f, 0.375f, 0.625f, 1.0f;
+  }
 #pragma omp parallel for
   for (int y = 0; y < height_; ++y) {
     for (int x = 0; x < width_; ++x) {
@@ -54,14 +63,19 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
       o = util::MakeColorVector(orig(y, x), util::PVR888).cast<float>();
       d = util::MakeColorVector(dark(y, x), util::PVR888).cast<float>();
       b = util::MakeColorVector(bright(y, x), util::PVR888).cast<float>();
-        
+      
+      if (format_ == YUV_OPT_4BPP || format_ == YUV_2BPP) {
+        o(1) = d(1) = b(1) =  0.0f;
+        o(2) = d(2) = b(2) = 0.0f;
+      }
+      
       /* Set the appropriate modulation value */
       delta_min = FLT_MAX;
-      for (int k = 0; k < 4; ++k) {
-        delta = (util::lerp<Eigen::Vector3f>(d, b, kModulationValues[k]) -
+      for (int k = 0; k < modulation_values.size(); ++k) {
+        delta = (util::lerp<Eigen::Vector3f>(d, b, modulation_values(k)) -
                  o).squaredNorm();
         if (delta < delta_min) {
-          result(y, x) = kModulationValues[k];
+          result(y, x) = modulation_values(k);
           delta_min = delta;
         }
       }
@@ -92,9 +106,18 @@ void Compressor::Compress(unsigned int *out) {
   Eigen::MatrixXi result = util::Downscale(bits);
     
   /* Initial dark and bright prototypes */
-  const Eigen::MatrixXi offset = Eigen::MatrixXi::Constant(height_>>2,
-                                                           width_>>2,
-                                                           0x30303030);
+  Eigen::MatrixXi offset;
+  if (format_ == YUV_2BPP || format_ == YUV_EXT_4BPP) {
+    offset = Eigen::MatrixXi::Constant(height_>>2,
+                                       width_>>2,
+                                       0x30303000);
+
+  } else {
+    offset = Eigen::MatrixXi::Constant(height_>>2,
+                                       width_>>2,
+                                       0x30303030);
+
+  }
   Eigen::MatrixXi dark = result - offset;
   Eigen::MatrixXi bright = result + offset;
     

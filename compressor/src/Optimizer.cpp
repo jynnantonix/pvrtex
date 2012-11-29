@@ -121,6 +121,7 @@ void Optimizer::ComputeUpdateVector() {
   
 void Optimizer::OptimizeWindow(int j, int i) {
   Eigen::MatrixXf a(matrix_rows_, matrix_cols_);
+  Eigen::MatrixXf w(matrix_rows_, matrix_cols_ / 2);
   Eigen::VectorXf red(matrix_rows_);
   Eigen::VectorXf green(matrix_rows_);
   Eigen::VectorXf blue(matrix_rows_);
@@ -146,6 +147,7 @@ void Optimizer::OptimizeWindow(int j, int i) {
       distance = kTopLeft[idx];
       a(idx, 0) = distance * (1.0f - m);
       a(idx, 1) = distance * m;
+      w(idx, 0) = distance;
       red(idx) = distance * r;
       green(idx) = distance * g;
       blue(idx) = distance * b;
@@ -154,6 +156,7 @@ void Optimizer::OptimizeWindow(int j, int i) {
       distance = kTopRight[idx];
       a(idx, 2) = distance * (1.0f - m);
       a(idx, 3) = distance * m;
+      w(idx, 1) = distance;
       red(idx) += distance * r;
       green(idx) += distance * g;
       blue(idx) += distance * b;
@@ -162,6 +165,7 @@ void Optimizer::OptimizeWindow(int j, int i) {
       distance = kBottomLeft[idx];
       a(idx, 4) = distance * (1.0f - m);
       a(idx, 5) = distance * m;
+      w(idx, 2) = distance;
       red(idx) += distance * r;
       green(idx) += distance * g;
       blue(idx) += distance * b;
@@ -170,6 +174,7 @@ void Optimizer::OptimizeWindow(int j, int i) {
       distance = kBottomRight[idx];
       a(idx, 6) = distance * (1.0f - m);
       a(idx, 7) = distance * m;
+      w(idx, 3) = distance;
       red(idx) += distance * r;
       green(idx) += distance * g;
       blue(idx) += distance * b;
@@ -181,34 +186,66 @@ void Optimizer::OptimizeWindow(int j, int i) {
   Eigen::JacobiSVD<Eigen::MatrixXf> svd(a, Eigen::ComputeThinU |
                                         Eigen::ComputeThinV);
   Eigen::VectorXi optimal_red = svd.solve(red).cast<int>();
-  Eigen::VectorXi optimal_green = svd.solve(green).cast<int>();
-  Eigen::VectorXi optimal_blue = svd.solve(blue).cast<int>();
+  Eigen::VectorXi optimal_green;
+  Eigen::VectorXi optimal_blue;
+  if (format_ == util::PVR444) {
+    Eigen::JacobiSVD<Eigen::MatrixXf> svd_w(w, Eigen::ComputeThinU |
+                                            Eigen::ComputeThinV);
+    Eigen::Vector3i update;
+    optimal_green = svd_w.solve(green).cast<int>();
+    optimal_blue = svd_w.solve(blue).cast<int>();
     
-  /* Update the dark and bright images */
-  for (int x = 0; x < 2; ++x) {
-    for (int y = 0; y < 2; ++y) {
-      idx = 4*y + 2*x;
-      dark_(j+y, i+x) = util::MakeRGB(
-          util::MakeColorVector(dark_(j+y, i+x), format_) +
-          Eigen::Vector3i(util::Clamp(optimal_red(idx), -32, 32),
-                          util::Clamp(optimal_green(idx), -32, 32),
-                          util::Clamp(optimal_blue(idx), -32, 32)),
-                                      format_);
-      bright_(j+y, i+x) = util::MakeRGB(
-          util::MakeColorVector(bright_(j+y, i+x), format_) +
-          Eigen::Vector3i(util::Clamp(optimal_red(idx+1), -32, 32),
-                          util::Clamp(optimal_green(idx+1), -32, 32),
-                          util::Clamp(optimal_blue(idx+1), -32, 32)),
-                                        format_);
-//      dark_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx),
-//                                                         optimal_green(idx),
-//                                                         optimal_blue(idx)));
-//      bright_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx+1),
-//                                                           optimal_green(idx+1),
-//                                                           optimal_blue(idx+1)));
-
+    /* Update the dark and bright images */
+    for (int x = 0; x < 2; ++x) {
+      for (int y = 0; y < 2; ++y) {
+        idx = 4*y + 2*x;
+        update = Eigen::Vector3i(util::Clamp(optimal_red(idx), -32, 32),
+                                 util::Clamp(optimal_green(idx/2), -32, 32),
+                                 util::Clamp(optimal_blue(idx/2), -32, 32));
+        dark_(j+y, i+x) = util::MakeRGB(
+                              util::MakeColorVector(dark_(j+y, i+x), format_) +
+                              update, format_);
+        update(0) = util::Clamp(optimal_red(idx+1), -32, 32);
+        bright_(j+y, i+x) = util::MakeRGB(
+                                util::MakeColorVector(bright_(j+y, i+x), format_) +
+                                    update, format_);
+        
+      }
     }
+  } else {
+    optimal_green = svd.solve(green).cast<int>();
+    optimal_blue = svd.solve(blue).cast<int>();
+    
+    /* Update the dark and bright images */
+    for (int x = 0; x < 2; ++x) {
+      for (int y = 0; y < 2; ++y) {
+        idx = 4*y + 2*x;
+        dark_(j+y, i+x) = util::MakeRGB(
+                              util::MakeColorVector(dark_(j+y, i+x), format_) +
+                              Eigen::Vector3i(
+                                  util::Clamp(optimal_red(idx), -32, 32),
+                                  util::Clamp(optimal_green(idx), -32, 32),
+                                  util::Clamp(optimal_blue(idx), -32, 32)),
+                                        format_);
+        bright_(j+y, i+x) = util::MakeRGB(
+                                util::MakeColorVector(bright_(j+y, i+x), format_) +
+                                Eigen::Vector3i(
+                                    util::Clamp(optimal_red(idx+1), -32, 32),
+                                    util::Clamp(optimal_green(idx+1), -32, 32),
+                                    util::Clamp(optimal_blue(idx+1), -32, 32)),
+                                          format_);
+        //      dark_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx),
+        //                                                         optimal_green(idx),
+        //                                                         optimal_blue(idx)));
+        //      bright_(j+y, i+x) = util::Make565RGB(Eigen::Vector3i(optimal_red(idx+1),
+        //                                                           optimal_green(idx+1),
+        //                                                           optimal_blue(idx+1)));
+        
+      }
+    }
+
   }
+    
 }
   
 void Optimizer::Optimize(const Eigen::MatrixXf &m) {
