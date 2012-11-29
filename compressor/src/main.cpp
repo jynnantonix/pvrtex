@@ -3,13 +3,14 @@
 /* @file            main.cpp                                                 */
 /* @author          Chirantan Ekbote (ekbote@seas.harvard.edu)               */
 /* @date            2012/11/05                                               */
-/* @version         0.2                                                      */
+/* @version         0.3                                                      */
 /* @brief           Compress any given image into the PVR texture format     */
 /*                                                                           */
 /*===========================================================================*/
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <FreeImage.h>
 
 #include "../inc/Compressor.h"
@@ -46,28 +47,28 @@ void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message) {
 }
 
 
-//////////////////////////////////////////////////////////////////////////////
-//      Generic Image Loader using FreeImage.  Returns the loaded image if      //
-//  successful, otherwise returns NULL.                                     //
-//                                                                                                                                  //
-//      lpszPathName    Pointer to the full file name                               //
-//      flag                    Optional load flag constant                                         //
-//////////////////////////////////////////////////////////////////////////////
+/*===========================================================================*/
+/*  Generic Image Loader using FreeImage.  Returns the loaded image if       */
+/*  successful, otherwise returns NULL.                                      */
+/*                                                                           */
+/*  lpszPathName    Pointer to the full file name                            */
+/*  flag            Optional load flag constant                              */
+/*===========================================================================*/
 FIBITMAP* GenericLoader(const char* lpszPathName, int flag) {
   FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
-  // check the file signature and deduce its format
-  // (the second argument is currently not used by FreeImage)
+  /* check the file signature and deduce its format            */
+  /* (the second argument is currently not used by FreeImage)  */
   fif = FreeImage_GetFileType(lpszPathName, 0);
   if(fif == FIF_UNKNOWN) {
-    // no signature ?
-    // try to guess the file format from the file extension
+    /* no signature ?                                          */
+    /* try to guess the file format from the file extension    */
     fif = FreeImage_GetFIFFromFilename(lpszPathName);
   }
-  // check that the plugin has reading capabilities ...
+  /* check that the plugin has reading capabilities ... */
   if((fif != FIF_UNKNOWN) && FreeImage_FIFSupportsReading(fif)) {
-    // ok, let's load the file
+    /* ok, let's load the file */
     FIBITMAP *dib = FreeImage_Load(fif, lpszPathName, flag);
-    // unless a bad file format, we are done !
+    /* unless a bad file format, we are done ! */
     return dib;
   }
   return NULL;
@@ -117,25 +118,61 @@ int main(int argc, char **argv)
   
   // Compress the image
   BYTE *result = (BYTE*)malloc(height * scan_width);
+  FIBITMAP *out;
+  
   pvrtex::Compressor cmp(width,
                          height,
-                         pvrtex::Compressor::A8R8G8B8,
+                         pvrtex::Compressor::PVRTC_4BPP,
                          reinterpret_cast<unsigned int*>(bits));
-  cmp.Compress(reinterpret_cast<unsigned int*>(result),
-               pvrtex::Compressor::PVRTC4);
+  
+  std::cout << "Compressing into standard PVRTC at 4bpp..." << std::flush;
+  cmp.Compress(reinterpret_cast<unsigned int*>(result));
   // Use FreeImage to write out the uncompressed 32-bit ARGB result
   // as a PNG file
-  FIBITMAP *out = FreeImage_ConvertFromRawBits(result,
-                                               width,
-                                               height,
-                                               scan_width,
-                                               32,
-                                               FI_RGBA_RED_MASK,
-                                               FI_RGBA_GREEN_MASK,
-                                               FI_RGBA_BLUE_MASK,
-                                               true);
-  FreeImage_Save(FIF_PNG, out, argv[2]);
+  out = FreeImage_ConvertFromRawBits(result,
+                                     width,
+                                     height,
+                                     scan_width,
+                                     32,
+                                     FI_RGBA_RED_MASK,
+                                     FI_RGBA_GREEN_MASK,
+                                     FI_RGBA_BLUE_MASK,
+                                     true);
+  FreeImage_Save(FIF_PNG, out, (std::string(argv[2]) + "_pvrtc4bpp.png").c_str());
   FreeImage_Unload(out);
   
+  std::cout << "Compressing using YUV colorspace at 4bpp..." << std::flush;
+  cmp.set_format(pvrtex::Compressor::YUV_4BPP);
+  cmp.Compress(reinterpret_cast<unsigned int*>(result));
+  // Use FreeImage to write out the uncompressed 32-bit ARGB result
+  // as a PNG file
+  out = FreeImage_ConvertFromRawBits(result,
+                                     width,
+                                     height,
+                                     scan_width,
+                                     32,
+                                     FI_RGBA_RED_MASK,
+                                     FI_RGBA_GREEN_MASK,
+                                     FI_RGBA_BLUE_MASK,
+                                     true);
+  FreeImage_Save(FIF_PNG, out, (std::string(argv[2]) + "_yuv4bpp.png").c_str());
+  FreeImage_Unload(out);
+  
+  std::cout << "Compressing using maximized Y bits in YUV colorspace at 4bpp..." << std::flush;
+  cmp.set_format(pvrtex::Compressor::YUV_OPT_4BPP);
+  cmp.Compress(reinterpret_cast<unsigned int*>(result));
+  // Use FreeImage to write out the uncompressed 32-bit ARGB result
+  // as a PNG file
+  out = FreeImage_ConvertFromRawBits(result,
+                                     width,
+                                     height,
+                                     scan_width,
+                                     32,
+                                     FI_RGBA_RED_MASK,
+                                     FI_RGBA_GREEN_MASK,
+                                     FI_RGBA_BLUE_MASK,
+                                     true);
+  FreeImage_Save(FIF_PNG, out, (std::string(argv[2]) + "_yuvopt4bpp.png").c_str());
+  FreeImage_Unload(out);
   return EXIT_SUCCESS;
 }
