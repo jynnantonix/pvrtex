@@ -8,6 +8,7 @@
 /*                                                                          */
 /*==========================================================================*/
 
+#include <omp.h>
 #include <iostream>
 #include <cfloat>
 
@@ -46,6 +47,7 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
   Eigen::MatrixXf result(height_, width_);
   Eigen::Vector3f o, d, b;
   float delta, delta_min;
+#pragma omp parallel for
   for (int y = 0; y < height_; ++y) {
     for (int x = 0; x < width_; ++x) {
       /* Get the original, dark, and bright pixel colors */
