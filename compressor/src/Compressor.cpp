@@ -64,7 +64,7 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
       d = util::MakeColorVector(dark(y, x), util::PVR888).cast<float>();
       b = util::MakeColorVector(bright(y, x), util::PVR888).cast<float>();
       
-      if (format_ == YUV_OPT_4BPP || format_ == YUV_2BPP) {
+      if (format_ == YUV_EXT_4BPP || format_ == YUV_2BPP) {
         o(1) = d(1) = b(1) =  0.0f;
         o(2) = d(2) = b(2) = 0.0f;
       }
