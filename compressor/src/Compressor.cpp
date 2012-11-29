@@ -78,9 +78,13 @@ void Compressor::Compress(unsigned int *out) {
     }
   }
     
-  /* Convert to YUV */
-  //Eigen::MatrixXi bits = util::RGBtoYUV(orig);
-  Eigen::MatrixXi bits = orig;
+  /* Convert to YUV if necessary */
+  Eigen::MatrixXi bits;
+  if (format_ == PVRTC_4BPP || format_ == PVRTC_2BPP) {
+    bits = orig;
+  } else {
+    bits = util::RGBtoYUV(orig);
+  }
     
   /* Wavelet filter */
   Eigen::MatrixXi result = util::Downscale(bits);
@@ -107,8 +111,10 @@ void Compressor::Compress(unsigned int *out) {
                                util::Upscale4x4(opt.bright(), df),
                                opt.mod());
 
-  /* Convert back to RGB */
-  //result = util::YUVtoRGB(result);
+  /* Convert back to RGB if necessary */
+  if (!(format_ == PVRTC_4BPP || format_ == PVRTC_2BPP)) {
+    result = util::YUVtoRGB(result);
+  } 
   for (int y = 0; y < result.rows(); ++y) {
     for (int x = 0; x < result.cols(); ++x) {
       out[y*width_ + x] = result(y, x);
