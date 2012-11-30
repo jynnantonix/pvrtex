@@ -1,10 +1,10 @@
 #============================================================================#
 #                                                                            #
-#   @file	      CMakeLists.txt                                               #
-#   @author	    Chirantan Ekbote (ekbote@seas.harvard.edu)                   #
+#   @file       CMakeLists.txt                                               #
+#   @author     Chirantan Ekbote (ekbote@seas.harvard.edu)                   #
 #   @date       2012/11/04                                                   #
 #   @version    0.2                                                          #
-#   @brief	    Project file for cross-platform compatibility                #
+#   @brief      Project file for cross-platform compatibility                #
 #                                                                            #
 #============================================================================#
 
@@ -23,18 +23,17 @@ list(APPEND CMAKE_CXX_FLAGS ${OpenMP_CXX_FLAGS})
 find_package(FreeImage REQUIRED)
 
 # Get Eigen3
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 # Get project sources
 file(GLOB HDR ${PROJECT_SOURCE_DIR}/inc/*.h)
 file(GLOB SRC ${PROJECT_SOURCE_DIR}/src/*.cpp)
 
 # Create the project executable
-if( ${FREEIMAGE_FOUND} AND ${EIGEN_FOUND} AND ${OPENMP_FOUND} )
-  include_directories( ${FREEIMAGE_INCLUDE_PATH} ${EIGEN_INCLUDE_DIRS} )
+if( ${FREEIMAGE_FOUND} AND ${EIGEN3_FOUND} AND ${OPENMP_FOUND} )
+  include_directories( ${FREEIMAGE_INCLUDE_PATH} ${EIGEN3_INCLUDE_DIR} )
 
   add_executable( pvrtex ${HDR} ${SRC} )
 
   target_link_libraries( pvrtex ${FREEIMAGE_LIBRARIES} )
 endif()
-
