@@ -274,8 +274,10 @@ Eigen::MatrixXi Upscale4x4(const Eigen::MatrixXi &orig, DATA_FORMAT f) {
       y = Clamp(j-2, 0, result.rows()-1)>>2;   /* (j/4) */
       x1 = Clamp(x+1, 0, orig.cols()-1);
       y1 = Clamp(y+1, 0, orig.rows()-1);
-      x_diff = static_cast<float>(Clamp(i-2, 0, result.cols()) - (x*4)) * ONE_FOURTH;
-      y_diff = static_cast<float>(Clamp(j-2, 0, result.rows()) - (y*4)) * ONE_FOURTH;
+      x_diff = static_cast<float>(Clamp(i-2, 0, result.cols()) - (x*4))
+                   * ONE_FOURTH;
+      y_diff = static_cast<float>(Clamp(j-2, 0, result.rows()) - (y*4))
+                   * ONE_FOURTH;
           
       /* Get the colors of the neighboring pixels */
       a = MakeColorVector(orig(y, x), f).cast<float>();
@@ -350,8 +352,8 @@ float ComputeError(const Eigen::MatrixXi &orig,
   float result = 0.0f;
   for (int y = 0; y < orig.rows(); ++y) {
     for (int x = 0; x < orig.cols(); ++x) {
-      result += (MakeColorVector(orig(y, x), PVR888) -
-                 MakeColorVector(compressed(y, x), PVR888)).squaredNorm();
+      result += static_cast<float>((MakeColorVector(orig(y, x), PVR888) -
+                    MakeColorVector(compressed(y, x), PVR888)).squaredNorm());
     }
   }
       

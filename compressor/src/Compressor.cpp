@@ -72,8 +72,8 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
       float delta, delta_min;
       delta_min = std::numeric_limits<float>::max();
       for (int k = 0; k < modulation_values.size(); ++k) {
-        delta = (util::lerp<Eigen::Vector3f>(d, b, modulation_values(k)) -
-                 o).squaredNorm();
+        delta = static_cast<float>((util::lerp<Eigen::Vector3f>(d, b,
+                    modulation_values(k)) - o).squaredNorm());
         if (delta < delta_min) {
           result(y, x) = modulation_values(k);
           delta_min = delta;
