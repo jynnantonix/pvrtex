@@ -100,13 +100,13 @@ Optimizer::~Optimizer() {
 }
   
 void Optimizer::ComputeUpdateVector() {
-  Eigen::Vector3i diff;
   Eigen::MatrixXi comp = util::ModulateImage(util::Upscale4x4(dark_, format_),
                                              util::Upscale4x4(bright_, format_),
                                              mod_);
 #pragma omp parallel for
   for (int y = 0; y < orig_.rows(); ++y) {
     for (int x = 0; x < orig_.cols(); ++x) {
+      Eigen::Vector3i diff;
       diff = (util::MakeColorVector(orig_(y,x), util::PVR888) -
               util::MakeColorVector(comp(y,x), util::PVR888));
       //        red_(y,x) = util::MakeRed(orig_(y,x));

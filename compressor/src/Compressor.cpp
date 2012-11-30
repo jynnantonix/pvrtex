@@ -45,8 +45,6 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
                                               const Eigen::MatrixXi &bright) {
   Eigen::VectorXf modulation_values;
   Eigen::MatrixXf result(height_, width_);
-  Eigen::Vector3f o, d, b;
-  float delta, delta_min;
   
   if (format_ == YUV_EXT_4BPP || format_ == YUV_2BPP) {
     modulation_values = Eigen::VectorXf(8);
@@ -56,10 +54,11 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
     modulation_values = Eigen::VectorXf(4);
     modulation_values << 0.0f, 0.375f, 0.625f, 1.0f;
   }
-//#pragma omp parallel for
+#pragma omp parallel for
   for (int y = 0; y < height_; ++y) {
     for (int x = 0; x < width_; ++x) {
       /* Get the original, dark, and bright pixel colors */
+      Eigen::Vector3f o, d, b;
       o = util::MakeColorVector(orig(y, x), util::PVR888).cast<float>();
       d = util::MakeColorVector(dark(y, x), util::PVR888).cast<float>();
       b = util::MakeColorVector(bright(y, x), util::PVR888).cast<float>();
@@ -70,6 +69,7 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
       }
       
       /* Set the appropriate modulation value */
+      float delta, delta_min;
       delta_min = std::numeric_limits<float>::max();
       for (int k = 0; k < modulation_values.size(); ++k) {
         delta = (util::lerp<Eigen::Vector3f>(d, b, modulation_values(k)) -
