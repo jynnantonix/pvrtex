@@ -11,7 +11,8 @@
 #ifndef pvrtex_Util_h
 #define pvrtex_Util_h
 
-#include <cmath>
+//#include <cmath>
+#include <algorithm>
 #include <Eigen/Dense>
 
 #include "Compressor.h"
@@ -38,11 +39,9 @@ Eigen::MatrixXi YUVtoRGB(const Eigen::MatrixXi &orig);
 
 float ComputeError(const Eigen::MatrixXi &orig,
                    const Eigen::MatrixXi &compressed);
-  
+
 inline int Clamp(int x, int a, int b) {
-  return static_cast<int>(fminf(fmaxf(static_cast<float>(x),
-                                      static_cast<float>(a)),
-                                static_cast<float>(b)));
+  return std::min<int>(std::max<int>(x, a), b);
 }
 
 template<typename T>

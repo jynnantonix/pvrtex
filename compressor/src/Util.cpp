@@ -284,16 +284,10 @@ Eigen::MatrixXi Upscale4x4(const Eigen::MatrixXi &orig, DATA_FORMAT f) {
       d = MakeColorVector(orig(y1, x1), f).cast<float>();
           
       /* Do the bilinear interpolation for each channel */
-      for (int k = 0; k < 3; ++k) {
-        color(k) = static_cast<int>(lerp<float>(lerp<float>(a(k),
-                                                            b(k),
-                                                            x_diff),
-                                                lerp<float>(c(k),
-                                                            d(k),
-                                                            x_diff),
-                                                y_diff));
-      }
-          
+      color = lerp<Eigen::Vector3f>(lerp<Eigen::Vector3f>(a, b, x_diff),
+                                    lerp<Eigen::Vector3f>(c, d, x_diff),
+                                    y_diff).cast<int>();
+      
       /* Store the result */
       result(j, i) = MakeRGB(color, PVR888);
     }
