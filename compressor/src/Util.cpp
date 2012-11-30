@@ -274,8 +274,8 @@ Eigen::MatrixXi Upscale4x4(const Eigen::MatrixXi &orig, DATA_FORMAT f) {
       y = Clamp(j-2, 0, result.rows()-1)>>2;   /* (j/4) */
       x1 = Clamp(x+1, 0, orig.cols()-1);
       y1 = Clamp(y+1, 0, orig.rows()-1);
-      x_diff = (Clamp(i-2, 0, result.cols()) - (x*4)) * ONE_FOURTH;
-      y_diff = (Clamp(j-2, 0, result.rows()) - (y*4)) * ONE_FOURTH;
+      x_diff = static_cast<float>(Clamp(i-2, 0, result.cols()) - (x*4)) * ONE_FOURTH;
+      y_diff = static_cast<float>(Clamp(j-2, 0, result.rows()) - (y*4)) * ONE_FOURTH;
           
       /* Get the colors of the neighboring pixels */
       a = MakeColorVector(orig(y, x), f).cast<float>();

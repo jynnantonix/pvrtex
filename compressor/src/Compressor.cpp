@@ -10,7 +10,7 @@
 
 #include <omp.h>
 #include <iostream>
-#include <cfloat>
+#include <limits>
 
 #include "../inc/Compressor.h"
 #include "../inc/Util.h"
@@ -56,7 +56,7 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
     modulation_values = Eigen::VectorXf(4);
     modulation_values << 0.0f, 0.375f, 0.625f, 1.0f;
   }
-#pragma omp parallel for
+//#pragma omp parallel for
   for (int y = 0; y < height_; ++y) {
     for (int x = 0; x < width_; ++x) {
       /* Get the original, dark, and bright pixel colors */
@@ -70,7 +70,7 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
       }
       
       /* Set the appropriate modulation value */
-      delta_min = FLT_MAX;
+      delta_min = std::numeric_limits<float>::max();
       for (int k = 0; k < modulation_values.size(); ++k) {
         delta = (util::lerp<Eigen::Vector3f>(d, b, modulation_values(k)) -
                  o).squaredNorm();
