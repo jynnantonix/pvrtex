@@ -8,6 +8,7 @@
 /*                                                                         */
 /*=========================================================================*/
 
+#include <omp.h>
 #include <FreeImage.h>
 
 #include "../inc/Util.h"
@@ -237,10 +238,12 @@ Eigen::MatrixXi ModulateImage(const Eigen::MatrixXi &dark,
                               const Eigen::MatrixXi &bright,
                               const Eigen::MatrixXf &mod) {
   Eigen::MatrixXi result(mod.rows(), mod.cols());
-  Eigen::Vector3f d, b;
-  Eigen::Vector3i r;
+
+#pragma omp parallel for
   for (int y = 0; y < mod.rows(); ++y) {
     for (int x = 0; x < mod.cols(); ++x) {
+      Eigen::Vector3f d, b;
+      Eigen::Vector3i r;
       d = MakeColorVector(dark(y, x), PVR888).cast<float>();
       b = MakeColorVector(bright(y, x), PVR888).cast<float>();
       r = lerp<Eigen::Vector3f>(d,b, mod(y, x)).cast<int>();
@@ -263,12 +266,16 @@ Eigen::MatrixXi Downscale(Eigen::MatrixXi &orig) {
     
 Eigen::MatrixXi Upscale4x4(const Eigen::MatrixXi &orig, DATA_FORMAT f) {
   Eigen::MatrixXi result(orig.rows() * 4, orig.cols() * 4);
-  int x, y, x1, y1;
-  float x_diff, y_diff;
-  Eigen::Vector3f a, b, c, d;
-  Eigen::Vector3i color;
+
+#pragma omp parallel for
   for (int j = 0; j < result.rows(); ++j) {
     for (int i = 0; i < result.cols(); ++i) {
+      /* All temporary variables we will use */
+      int x, y, x1, y1;
+      float x_diff, y_diff;
+      Eigen::Vector3f a, b, c, d;
+      Eigen::Vector3i color;
+      
       /* Get the indices of the four neighboring pixels */
       x = Clamp(i-2, 0, result.cols()-1)>>2;   /* (i/4) */
       y = Clamp(j-2, 0, result.rows()-1)>>2;   /* (j/4) */
