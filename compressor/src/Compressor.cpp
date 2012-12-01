@@ -93,7 +93,10 @@ void Compressor::Compress(unsigned int *out) {
       orig(y, x) = data_[y*width_ + x];
     }
   }
-    
+
+  /* Get the internal data format */
+  util::DATA_FORMAT df = util::ImageToData(format_);
+  
   /* Convert to YUV if necessary */
   Eigen::MatrixXi bits;
   if (format_ == PVRTC_4BPP || format_ == PVRTC_2BPP) {
@@ -106,29 +109,38 @@ void Compressor::Compress(unsigned int *out) {
   Eigen::MatrixXi result = util::Downscale(bits);
     
   /* Initial dark and bright prototypes */
-  Eigen::MatrixXi offset;
-  if (format_ == YUV_2BPP || format_ == YUV_EXT_4BPP) {
-    offset = Eigen::MatrixXi::Constant(height_>>2,
-                                       width_>>2,
-                                       0x30303000);
+  Eigen::Vector3i offset(32, 32, 32);
+  Eigen::MatrixXi dark(result.rows(), result.cols());
+  Eigen::MatrixXi bright(result.rows(), result.cols());
 
-  } else {
-    offset = Eigen::MatrixXi::Constant(height_>>2,
-                                       width_>>2,
-                                       0x30303030);
-
+#pragma omp parallel for
+  for(int y = 0; y < result.rows(); ++y) {
+    for(int x = 0; x < result.cols(); ++x) {
+      Eigen::Vector3i color = util::MakeColorVector(result(y, x), util::PVR888);
+      dark(y, x) = util::MakeRGB(color - offset, df);
+      bright(y, x) = util::MakeRGB(color + offset, df);
+    }
   }
-  Eigen::MatrixXi dark = result - offset;
-  Eigen::MatrixXi bright = result + offset;
+  
+  // Eigen::MatrixXi dark = result - offset;
+  // Eigen::MatrixXi bright = result + offset;
     
   /* Iterative optimization */
-  util::DATA_FORMAT df = util::ImageToData(format_);
   Optimizer opt(bits, dark, bright, Optimizer::SVD, df);
-  for (int k = 0; k < 12; ++k) {
+  float prev_err = std::numeric_limits<float>::max();
+  float curr_err = std::numeric_limits<float>::max();
+  for (int k = 0; k < 4 || (prev_err - curr_err) > 1e-10; ++k) {
     /* Least squares optimization */
     opt.Optimize(ComputeModulation(bits,
                                    util::Upscale4x4(opt.dark(), df),
                                    util::Upscale4x4(opt.bright(), df)));
+
+    /* Get the current error */
+    result = util::ModulateImage(util::Upscale4x4(opt.dark(), df),
+                                 util::Upscale4x4(opt.bright(), df),
+                                 opt.mod());
+    prev_err = curr_err;
+    curr_err = util::ComputeError(orig, result);
   }
     
   /* Write the final output */
