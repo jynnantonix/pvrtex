@@ -8,7 +8,9 @@
 /*                                                                         */
 /*=========================================================================*/
 
+#ifdef USE_OPENMP
 #include <omp.h>
+#endif
 #include <Eigen/SVD>
 
 #include "../inc/Optimizer.h"
@@ -103,7 +105,9 @@ void Optimizer::ComputeUpdateVector() {
   Eigen::MatrixXi comp = util::ModulateImage(util::Upscale4x4(dark_, format_),
                                              util::Upscale4x4(bright_, format_),
                                              mod_);
+#ifdef USE_OPENMP
 #pragma omp parallel for
+#endif
   for (int y = 0; y < orig_.rows(); ++y) {
     for (int x = 0; x < orig_.cols(); ++x) {
       Eigen::Vector3i diff;
@@ -251,7 +255,9 @@ void Optimizer::OptimizeWindow(int j, int i) {
 void Optimizer::Optimize(const Eigen::MatrixXf &m) {
   mod_ = m;
   ComputeUpdateVector();
+#ifdef USE_OPENMP
 #pragma omp parallel for
+#endif
   for (int j = 0; j < dark_.rows(); j+=2) {
     for (int i = 0; i < dark_.cols(); i+=2) {
       OptimizeWindow(j, i);

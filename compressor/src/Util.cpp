@@ -8,7 +8,9 @@
 /*                                                                         */
 /*=========================================================================*/
 
+#ifdef USE_OPENMP
 #include <omp.h>
+#endif
 #include <FreeImage.h>
 
 #include "../inc/Util.h"
@@ -239,7 +241,9 @@ Eigen::MatrixXi ModulateImage(const Eigen::MatrixXi &dark,
                               const Eigen::MatrixXf &mod) {
   Eigen::MatrixXi result(mod.rows(), mod.cols());
 
+#ifdef USE_OPENMP
 #pragma omp parallel for
+#endif
   for (int y = 0; y < mod.rows(); ++y) {
     for (int x = 0; x < mod.cols(); ++x) {
       Eigen::Vector3f d, b;
@@ -267,7 +271,9 @@ Eigen::MatrixXi Downscale(Eigen::MatrixXi &orig) {
 Eigen::MatrixXi Upscale4x4(const Eigen::MatrixXi &orig, DATA_FORMAT f) {
   Eigen::MatrixXi result(orig.rows() * 4, orig.cols() * 4);
 
+#ifdef USE_OPENMP
 #pragma omp parallel for
+#endif
   for (int j = 0; j < result.rows(); ++j) {
     for (int i = 0; i < result.cols(); ++i) {
       /* All temporary variables we will use */

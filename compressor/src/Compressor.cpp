@@ -8,7 +8,9 @@
 /*                                                                          */
 /*==========================================================================*/
 
+#ifdef USE_OPENMP
 #include <omp.h>
+#endif
 #include <iostream>
 #include <limits>
 
@@ -54,7 +56,9 @@ Eigen::MatrixXf Compressor::ComputeModulation(const Eigen::MatrixXi &orig,
     modulation_values = Eigen::VectorXf(4);
     modulation_values << 0.0f, 0.375f, 0.625f, 1.0f;
   }
+#ifdef USE_OPENMP
 #pragma omp parallel for
+#endif
   for (int y = 0; y < height_; ++y) {
     for (int x = 0; x < width_; ++x) {
       /* Get the original, dark, and bright pixel colors */
@@ -113,7 +117,9 @@ void Compressor::Compress(unsigned int *out) {
   Eigen::MatrixXi dark(result.rows(), result.cols());
   Eigen::MatrixXi bright(result.rows(), result.cols());
 
+#ifdef USE_OPENMP
 #pragma omp parallel for
+#endif
   for(int y = 0; y < result.rows(); ++y) {
     for(int x = 0; x < result.cols(); ++x) {
       Eigen::Vector3i color = util::MakeColorVector(result(y, x), util::PVR888);

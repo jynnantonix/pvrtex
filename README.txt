@@ -7,7 +7,7 @@ DEPENDENCIES
 CMake (http://www.cmake.org/)
 FreeImage (http://freeimage.sourceforge.net/)
 Eigen3 (http://eigen.tuxfamily.org/)
-OpenMP (http://openmp.org/)
+OpenMP (http://openmp.org/) - OPTIONAL
 
 USAGE
 Compile the program using CMake and your favorite build toolchain.  To run it type
