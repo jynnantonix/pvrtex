@@ -10,7 +10,7 @@ Eigen3 (http://eigen.tuxfamily.org/)
 OpenMP (http://openmp.org/) - OPTIONAL
 
 USAGE
-Compile the program using CMake and your favorite build toolchain.  To run it type
+Compile the program using CMake and your favorite build toolchain.  Make sure you compile it in release mode by passing -DCMAKE_BUILD_TYPE=Release as a parameter to CMake.  Otherwise, it will be *very* slow.  To run the compressor type
 
 ./pvrtex <input> <output_filename_prefix>
 
