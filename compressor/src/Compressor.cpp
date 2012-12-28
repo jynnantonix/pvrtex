@@ -135,7 +135,7 @@ void Compressor::Compress(unsigned int *out) {
   Optimizer opt(bits, dark, bright, Optimizer::SVD, df);
   float prev_err = std::numeric_limits<float>::max();
   float curr_err = std::numeric_limits<float>::max();
-  for (int k = 0; k < 4 || (prev_err - curr_err) > 1e-10; ++k) {
+  for (int k = 0; (k < 4 || (prev_err - curr_err) > 1e-10) && (k < 20); ++k) {
     /* Least squares optimization */
     opt.Optimize(ComputeModulation(bits,
                                    util::Upscale4x4(opt.dark(), df),
