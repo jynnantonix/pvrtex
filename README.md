@@ -18,8 +18,11 @@ useful as a reference for the current implementation.
 DEPENDENCIES
 
 CMake (http://www.cmake.org/)
+
 FreeImage (http://freeimage.sourceforge.net/)
+
 Eigen3 (http://eigen.tuxfamily.org/)
+
 OpenMP (http://openmp.org/) - OPTIONAL
 
 USAGE
@@ -29,11 +32,11 @@ Make sure you compile it in release mode by passing
 -DCMAKE_BUILD_TYPE=Release as a parameter to CMake.  Otherwise, it
 will be *very* slow.  To run the compressor type
 
-./pvrtex <input> <output_filename_prefix>
+    ./pvrtex <input> <output_filename_prefix>
 
 This will write out 4 files.  So for example, if I ran
 
-./pvrtex lena.png lena
+    ./pvrtex lena.png lena
 
 I would get lena_pvrtc4bpp.png, lena_yuv4bpp.png, lena_yuvext4bpp.png,
 and lena_yuvopt4bpp.png.  The program will also print the root
